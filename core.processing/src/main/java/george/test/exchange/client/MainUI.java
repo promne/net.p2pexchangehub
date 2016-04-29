@@ -1,6 +1,5 @@
 package george.test.exchange.client;
 
-import com.vaadin.annotations.Push;
 import com.vaadin.annotations.Theme;
 import com.vaadin.cdi.CDIUI;
 import com.vaadin.cdi.CDIViewProvider;
@@ -26,6 +25,7 @@ public class MainUI extends UI {
         
         menuBar.addItem("Accounts", e -> getUI().getNavigator().navigateTo(AccountsView.VIEW_NAME));
         menuBar.addItem("Offers", e -> getUI().getNavigator().navigateTo(OffersView.VIEW_NAME));
+        menuBar.addItem("Configuration", e -> getUI().getNavigator().navigateTo(ConfigurationView.VIEW_NAME));
         
         
         VerticalLayout mainLayout = new VerticalLayout();

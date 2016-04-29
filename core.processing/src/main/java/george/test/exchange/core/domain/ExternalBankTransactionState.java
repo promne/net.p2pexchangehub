@@ -2,7 +2,10 @@ package george.test.exchange.core.domain;
 
 public enum ExternalBankTransactionState {
 
-    IMPORTED, 
-    MATCHED;
+    IMPORTED,
+    PARTIAL_MATCH,
+    MATCHED,
+    
+    REQUESTED;
     
 }

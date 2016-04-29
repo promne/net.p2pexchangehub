@@ -8,10 +8,9 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.Version;
 
+import es.aggregate.ExchangeOffer;
 import george.test.exchange.core.domain.TransactionState;
 
 @Entity 
@@ -26,13 +25,8 @@ public abstract class Transaction {
     
     private BigDecimal amount;
 
-    @ManyToOne
-    @JoinColumn(name = EXCHANGE_OFFER)
     private ExchangeOffer exchangeOffer;
     public static final String EXCHANGE_OFFER = "exchangeOffer";
-    
-    @ManyToOne(optional = false)
-    private UserAccount owner;
     
     @Column(nullable = false)
     private TransactionState state;
@@ -64,14 +58,6 @@ public abstract class Transaction {
 
     public void setExchangeOffer(ExchangeOffer exchangeOffer) {
         this.exchangeOffer = exchangeOffer;
-    }
-
-    public UserAccount getOwner() {
-        return owner;
-    }
-
-    public void setOwner(UserAccount owner) {
-        this.owner = owner;
     }
 
     public TransactionState getState() {

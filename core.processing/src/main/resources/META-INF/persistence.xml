@@ -5,6 +5,8 @@
  
     <persistence-unit name="jmmexchange" transaction-type="JTA">
         <jta-data-source>java:jboss/datasources/JMMExchangeDS</jta-data-source>
+        <class>org.axonframework.eventstore.jpa.DomainEventEntry</class>
+        <class>org.axonframework.eventstore.jpa.SnapshotEventEntry</class>
         <properties>
             <property name="javax.persistence.schema-generation.database.action" value="drop-and-create"/>
         <!-- 

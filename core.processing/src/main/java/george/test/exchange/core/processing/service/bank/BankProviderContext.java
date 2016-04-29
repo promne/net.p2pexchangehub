@@ -2,11 +2,11 @@ package george.test.exchange.core.processing.service.bank;
 
 import java.util.Date;
 
-import george.test.exchange.core.domain.entity.bank.ExternalBankAccount;
+import es.aggregate.ExternalBankAccount;
 
 public abstract class BankProviderContext<A extends ExternalBankAccount> {
 
-    private final A bankAccount;
+    private A bankAccount;
 
     private boolean active = true;
     
@@ -18,6 +18,10 @@ public abstract class BankProviderContext<A extends ExternalBankAccount> {
         this.lastUsed = new Date();
     }
 
+    void setBankAccount(A bankAccount) {
+        this.bankAccount = bankAccount;
+    }
+    
     /* in miliseconds */
     protected abstract long getTimeout();
     

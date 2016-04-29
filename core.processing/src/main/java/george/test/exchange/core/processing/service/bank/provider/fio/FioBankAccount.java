@@ -1,11 +1,7 @@
 package george.test.exchange.core.processing.service.bank.provider.fio;
 
-import javax.persistence.Entity;
+import es.aggregate.ExternalBankAccount;
 
-import george.test.exchange.core.domain.ExternalBankType;
-import george.test.exchange.core.domain.entity.bank.ExternalBankAccount;
-
-@Entity
 public class FioBankAccount extends ExternalBankAccount {
 
     private String username;
@@ -40,16 +36,6 @@ public class FioBankAccount extends ExternalBankAccount {
 
     public void setDeviceId(String deviceId) {
         this.deviceId = deviceId;
-    }
-
-    @Override
-    public ExternalBankType getBankType() {
-        return ExternalBankType.FIO;
-    }
-
-    @Override
-    public String getFullAccountNumber() {
-        return getAccountNumber();
     }
 
 }

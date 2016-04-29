@@ -8,9 +8,9 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
-import javax.persistence.ManyToOne;
 import javax.persistence.Version;
 
+import es.aggregate.ExternalBankAccount;
 import george.test.exchange.core.domain.ExternalBankTransactionState;
 import george.test.exchange.core.domain.entity.TransactionRequestExternal;
 
@@ -24,7 +24,6 @@ public abstract class ExternalBankTransaction {
     @Version
     private long version;
     
-    @ManyToOne(optional=false)
     private ExternalBankAccount bankAccount;
     public static final String BANK_ACCOUNT = "bankAccount";
 

@@ -18,7 +18,10 @@
 
 		<slf4j.version>1.7.7</slf4j.version>
 		<resteasy.version>3.0.14.Final</resteasy.version>
-		<version.vaadin>7.6.4</version.vaadin>
+		<version.vaadin>7.6.5</version.vaadin>
+		<axonframework.version>2.4.3</axonframework.version>
+		
+		<maven.test.skip>true</maven.test.skip>
 	</properties>
 
 	<dependencyManagement>
@@ -29,7 +32,17 @@
 				<version>${version.vaadin}</version>
 				<type>pom</type>
 				<scope>import</scope>
-			</dependency>					
+			</dependency>
+			<dependency>
+				<groupId>org.apache.deltaspike.core</groupId>
+				<artifactId>deltaspike-core-api</artifactId>
+				<version>1.4.1</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.deltaspike.core</groupId>
+				<artifactId>deltaspike-core-impl</artifactId>
+				<version>1.4.1</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -42,7 +55,24 @@
 			<scope>provided</scope>
 		</dependency>
 
-
+		<!-- axon framework -->
+		<dependency>
+			<groupId>org.axonframework</groupId>
+			<artifactId>axon-core</artifactId>
+			<version>${axonframework.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.axonframework</groupId>
+			<artifactId>axon-test</artifactId>
+			<version>${axonframework.version}</version>
+		</dependency>
+		 <dependency>
+			<groupId>com.github.kamaladafrica</groupId>
+			<artifactId>axon-cdi</artifactId>
+			<version>master</version>
+		</dependency>		
+		
+		
 		<dependency>
 			<groupId>george.test</groupId>
 			<artifactId>simple.bank.api</artifactId>
@@ -69,6 +99,21 @@
 			<artifactId>vaadin-cdi</artifactId>
 			<version>1.0.3</version>
 		</dependency>	
+		<dependency>
+		   <groupId>com.vaadin.addon</groupId>
+		   <artifactId>jpacontainer</artifactId>
+		   <version>3.2.0</version>
+		</dependency>
+		<dependency>
+		   <groupId>com.vaadin.addon</groupId>
+		   <artifactId>vaadin-context-menu</artifactId>
+		   <version>0.7.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.vaadin</groupId>
+			<artifactId>viritin</artifactId>
+			<version>1.49</version>
+		</dependency>
 
 		<!-- rest -->
 		<dependency>
@@ -84,6 +129,11 @@
 		<dependency>
 			<groupId>org.jboss.resteasy</groupId>
 			<artifactId>resteasy-jaxb-provider</artifactId>
+			<version>${resteasy.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-cdi</artifactId>
 			<version>${resteasy.version}</version>
 		</dependency>
 
@@ -105,9 +155,26 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.11</version>
+			<version>4.12</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
 	
+	<repositories>
+		<repository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
+			<name>Jitpack.io Repository</name>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>vaadin-addons</id>
+			<url>http://maven.vaadin.com/vaadin-addons</url>
+		</repository>
+	</repositories>
 </project>

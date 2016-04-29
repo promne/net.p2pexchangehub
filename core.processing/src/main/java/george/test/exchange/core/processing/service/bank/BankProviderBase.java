@@ -10,8 +10,8 @@ import javax.inject.Inject;
 
 import org.slf4j.Logger;
 
+import es.aggregate.ExternalBankAccount;
 import george.test.exchange.core.domain.entity.TransactionRequestExternal;
-import george.test.exchange.core.domain.entity.bank.ExternalBankAccount;
 import george.test.exchange.core.domain.entity.bank.ExternalBankTransaction;
 
 // because of weld being unable to inject generic, do the mapping to right type
@@ -20,7 +20,7 @@ public abstract class BankProviderBase<A extends ExternalBankAccount, T extends 
     @Inject
     private Logger log;
     
-    private static final Map<ExternalBankAccount, BankProviderContext<?>> contextMap = new ConcurrentHashMap<>();
+    private static final Map<Object, BankProviderContext<?>> contextMap = new ConcurrentHashMap<>();
     
     public BankProviderBase() {
         super();
@@ -29,12 +29,13 @@ public abstract class BankProviderBase<A extends ExternalBankAccount, T extends 
     private C getContext(ExternalBankAccount bankAccount) throws BankProviderException {
         C context;
         synchronized(bankAccount.getClass()) {
-            context = (C) contextMap.get(bankAccount);
+            context = (C) contextMap.get(bankAccount.getId());
             if (context==null || !context.isActive()) {
                 context = loginInternal((A)bankAccount);
-                contextMap.put(bankAccount, context);
+                contextMap.put(bankAccount.getId(), context);
                 log.info("Created new context {}", context);
             }
+            context.setBankAccount((A)bankAccount);
         }
         return context;
     }

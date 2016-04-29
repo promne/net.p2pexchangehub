@@ -1,17 +1,15 @@
 package george.test.exchange.core.domain.entity;
 
 import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 
+import es.aggregate.ExternalBankAccount;
 import george.test.exchange.core.domain.ExternalBankTransactionRequestState;
-import george.test.exchange.core.domain.entity.bank.ExternalBankAccount;
 import george.test.exchange.core.domain.entity.bank.ExternalBankTransaction;
 
 @Entity
 public class TransactionRequestExternal extends Transaction {
 
-    @ManyToOne(optional=false)
     private ExternalBankAccount bankAccount;
 
     private String recipientAccountNumber;

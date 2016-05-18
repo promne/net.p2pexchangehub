@@ -1,23 +1,31 @@
 package esw.event;
 
-import javax.ejb.Stateless;
+import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.transaction.Transactional;
 
 import org.axonframework.eventhandling.annotation.EventHandler;
+import org.axonframework.eventhandling.replay.ReplayAware;
 
 import es.event.OfferCreatedEvent;
+import es.event.OfferIncomingPaymentExternalAccountChangedEvent;
 import es.event.OfferIncomingTransactionMatchedEvent;
 import es.event.OfferMatchedEvent;
+import es.event.OfferOutgoingTransactionMatchedEvent;
 import es.event.OfferOwnerBankNumberChangedEvent;
 import es.event.OfferStateChangedEvent;
 import esw.domain.Offer;
+import george.test.exchange.core.processing.util.JPAUtilsBean;
 
-@Stateless
-public class ExchangeOfferListener {
+@Transactional
+public class ExchangeOfferListener implements ReplayAware {
 
     @PersistenceContext
     private EntityManager em;
+
+    @Inject
+    private JPAUtilsBean jpaUtils;
     
     @EventHandler
     public void offerCreated(OfferCreatedEvent event) {
@@ -64,5 +72,36 @@ public class ExchangeOfferListener {
         offer.setAmountReceived(event.getNewBalance());
         em.merge(offer);
     }
-    
+
+    @EventHandler
+    public void handleOutgoingTransactionMatched(OfferOutgoingTransactionMatchedEvent event) {
+        Offer offer = em.find(Offer.class, event.getOfferId());
+        offer.setAmountSent(event.getNewBalance());
+        em.merge(offer);
+    }
+
+    @EventHandler
+    public void handleOfferIncomingPaymentExternalAccountChanged(OfferIncomingPaymentExternalAccountChangedEvent event) {
+        Offer offer = em.find(Offer.class, event.getOfferId());
+        offer.setIncomingPaymentBankAccountId(event.getBankAccountId());
+        
+        Offer matchedOffer = em.find(Offer.class, offer.getMatchedExchangeOfferId());
+        matchedOffer.setOutgoingPaymentBankAccountId(event.getBankAccountId());
+        
+        em.merge(offer);
+        em.merge(matchedOffer);
+    }
+
+    @Override
+    public void beforeReplay() {
+        jpaUtils.deleteAll(Offer.class);
+    }
+
+    @Override
+    public void afterReplay() {
+    }
+
+    @Override
+    public void onReplayFailed(Throwable cause) {
+    }
 }

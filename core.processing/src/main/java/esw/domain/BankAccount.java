@@ -13,10 +13,10 @@ public class BankAccount {
 
     @Id
     private String id;
+    public static final String PROPERTY_ID = "id";
 
     private String currency;
-
-    private String country;
+    public static final String PROPERTY_CURRENCY = "currency";
 
     private BigDecimal balance;
 
@@ -25,6 +25,7 @@ public class BankAccount {
     private boolean active;
 
     private String accountNumber;
+    public static final String PROPERTY_ACCOUNT_NUMBER = "accountNumber";
 
     private ExternalBankType bankType;
 
@@ -51,14 +52,6 @@ public class BankAccount {
 
     public void setCurrency(String currency) {
         this.currency = currency;
-    }
-
-    public String getCountry() {
-        return country;
-    }
-
-    public void setCountry(String country) {
-        this.country = country;
     }
 
     public BigDecimal getBalance() {

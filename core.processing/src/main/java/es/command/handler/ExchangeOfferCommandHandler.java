@@ -3,6 +3,7 @@ package es.command.handler;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
 
@@ -19,6 +20,7 @@ import es.aggregate.ExchangeOffer;
 import es.aggregate.ExternalBankAccount;
 import es.aggregate.TestBankAccount;
 import es.aggregate.UserAccount;
+import es.command.CancelExchangeOfferCommand;
 import es.command.CreateOfferCommand;
 import es.command.MatchExchangeOfferCommand;
 import es.command.RequestOfferPaymentCommand;
@@ -91,6 +93,10 @@ public class ExchangeOfferCommandHandler {
         
         //create fitting counter offer 
         BigDecimal requestedAmountExchanged = currencyService.calculateExchangePay(command.getAmountRequested(), matchOffer.getCurrencyOffered(), matchOffer.getCurrencyRequested(), matchOffer.getAmountRequestedExchangeRate());
+        if (requestedAmountExchanged.compareTo(command.getAmountOffered()) > 0) {
+            throw new IllegalStateException("Unable to match offer with lower bid");            
+        }
+        
         BigDecimal offerExchangeRate = command.getAmountRequested().divide(command.getAmountOffered(), 4, RoundingMode.DOWN);
         ExchangeOffer offer = new ExchangeOffer(command.getNewOfferId(), command.getUserAccountId(), matchOffer.getCurrencyRequested(), command.getAmountOffered(), command.getAmountOffered(), matchOffer.getCurrencyOffered(), offerExchangeRate);
         repository.add(offer);
@@ -98,6 +104,18 @@ public class ExchangeOfferCommandHandler {
         //and match with minimal amounts satisfying both
         matchOffer.matchWithOffer(command.getNewOfferId(), command.getAmountRequested(), requestedAmountExchanged, offerView.generateUniqueReferenceId(matchOffer.getCurrencyOffered()));
         offer.matchWithOffer(command.getMatchOfferId(), command.getAmountOffered(), command.getAmountRequested(), offerView.generateUniqueReferenceId(offer.getCurrencyOffered()));
+        
+        List<BankAccount> activeAccountsOffered = accountsView.listActiveAccounts(matchOffer.getCurrencyOffered());
+        if (activeAccountsOffered.isEmpty()) {
+            throw new IllegalStateException("Unable to find active account for currency " + matchOffer.getCurrencyOffered());
+        }
+        matchOffer.setIncomingPaymentExternalAccount(activeAccountsOffered.get(0).getId());
+
+        List<BankAccount> activeAccountsRequested = accountsView.listActiveAccounts(matchOffer.getCurrencyRequested());
+        if (activeAccountsRequested.isEmpty()) {
+            throw new IllegalStateException("Unable to find active account for currency " + matchOffer.getCurrencyRequested());
+        }
+        offer.setIncomingPaymentExternalAccount(activeAccountsRequested.get(0).getId());
     }
     
     @CommandHandler
@@ -110,8 +128,11 @@ public class ExchangeOfferCommandHandler {
         if (!Arrays.asList(OfferState.PAYMENT_RECEIVED, OfferState.SEND_MONEY_REQUESTED, OfferState.CLOSED).contains(matchedOffer.getState())) {
             throw new IllegalStateException(String.format("Unable to pay offer %s when matching offer %s is in state %s", command.getOfferId(), matchedOffer.getId(), matchedOffer.getState()));
         }
+        if (offer.getOwnerAccountNumber()==null) {
+            throw new IllegalStateException(String.format("Unable to pay offer %s without recipients account", command.getOfferId(), matchedOffer.getId(), matchedOffer.getState()));            
+        }
         
-        Optional<BankAccount> bankAccount = accountsView.listAccounts(offer.getCurrencyRequested()).stream().filter(a -> a.getBalance().compareTo(offer.getAmountRequested())>0).findAny();
+        Optional<BankAccount> bankAccount = accountsView.getBankAccount(matchedOffer.getIncomingExternalBankAccountId());
         if (!bankAccount.isPresent()) {
             throw new IllegalStateException(String.format("There is no bank account available to payoff offer %s", command.getOfferId()));            
         }
@@ -123,7 +144,7 @@ public class ExchangeOfferCommandHandler {
         TransactionRequestExternal transactionRequest = new TransactionRequestExternal();
         transactionRequest.setBankAccount(bankAccountAggregate);
         transactionRequest.setAmount(offer.getAmountRequested());
-        transactionRequest.setDetailInfo(String.format("%s rate %s", offer.getAmountOffered(), offer.getAmountRequestedExchangeRate()));
+        transactionRequest.setDetailInfo(String.format("%s %s %s rate %s", offer.getReferenceId(), offer.getAmountOffered(), offer.getCurrencyOffered(), offer.getAmountRequestedExchangeRate()));
         transactionRequest.setRecipientAccountNumber(offer.getOwnerAccountNumber());
         
         bankProvider.get().processTransactionRequest(transactionRequest);
@@ -131,9 +152,14 @@ public class ExchangeOfferCommandHandler {
     }    
 
     @CommandHandler
-    public void handleSetOwnerAccountNumberForOfferCommand(SetOwnerAccountNumberForOfferCommand command) throws BankProviderException {
+    public void handleSetOwnerAccountNumberForOfferCommand(SetOwnerAccountNumberForOfferCommand command) {
         ExchangeOffer offer = repository.load(command.getOfferId());
         offer.setOwnerAccountNumber(command.getAccountNumber());        
+    }
+
+    @CommandHandler
+    public void handleCancelExchangeOfferCommand(CancelExchangeOfferCommand command) {
+        repository.load(command.getOfferId()).cancel();        
     }
     
 }

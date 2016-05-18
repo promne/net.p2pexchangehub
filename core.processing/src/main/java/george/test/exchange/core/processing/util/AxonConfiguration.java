@@ -4,25 +4,32 @@ import java.util.concurrent.Executors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
+import javax.inject.Singleton;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
 import org.axonframework.commandhandling.CommandBus;
 import org.axonframework.commandhandling.SimpleCommandBus;
 import org.axonframework.common.jpa.SimpleEntityManagerProvider;
+import org.axonframework.eventhandling.Cluster;
+import org.axonframework.eventhandling.ClusteringEventBus;
+import org.axonframework.eventhandling.DefaultClusterSelector;
 import org.axonframework.eventhandling.EventBus;
-import org.axonframework.eventhandling.SimpleEventBus;
+import org.axonframework.eventhandling.SimpleCluster;
+import org.axonframework.eventhandling.replay.BackloggingIncomingMessageHandler;
+import org.axonframework.eventhandling.replay.ReplayingCluster;
 import org.axonframework.eventhandling.scheduling.EventScheduler;
 import org.axonframework.eventhandling.scheduling.java.SimpleEventScheduler;
 import org.axonframework.eventsourcing.AggregateSnapshotter;
 import org.axonframework.eventsourcing.EventCountSnapshotterTrigger;
 import org.axonframework.eventsourcing.Snapshotter;
 import org.axonframework.eventsourcing.SnapshotterTrigger;
-import org.axonframework.eventstore.SnapshotEventStore;
 import org.axonframework.eventstore.jpa.JpaEventStore;
+import org.axonframework.eventstore.management.EventStoreManagement;
 import org.axonframework.integration.cdi.AutoConfigure;
 import org.axonframework.saga.SagaRepository;
 import org.axonframework.saga.repository.inmemory.InMemorySagaRepository;
+import org.axonframework.unitofwork.NoTransactionManager;
 
 @ApplicationScoped
 public class AxonConfiguration {
@@ -33,16 +40,41 @@ public class AxonConfiguration {
     @Produces
     @AutoConfigure
     @ApplicationScoped
-    public EventBus eventBus() {
-        return new SimpleEventBus();
+    public EventBus eventBus(Cluster cluster) {
+        return new ClusteringEventBus(new DefaultClusterSelector(cluster));
+    }
+
+    
+    @Produces
+    @Singleton
+    public ReplayingCluster defaultCluster(EventStoreManagement eventStoreManagement) {
+        return new ReplayingCluster(
+                new SimpleCluster("default"),
+                eventStoreManagement,
+                new NoTransactionManager(),
+                0,
+                new BackloggingIncomingMessageHandler());
     }
 
     @Produces
-    @ApplicationScoped
-    public SnapshotEventStore eventStore() {
-        return new JpaEventStore(new SimpleEntityManagerProvider(em));
+    @Singleton
+    public JpaEventStore defaultJpaEventStore() {
+        return new JpaEventStore(new SimpleEntityManagerProvider(em));        
     }
 
+//    @Produces
+//    @Singleton
+//    public MongoEventStore defaultMongoEventStore() throws UnknownHostException {
+//        Mongo mongo = new Mongo("192.168.56.101");
+//        char[] password = null;
+//        String userName = null;
+//        String snapshotEventsCollectionName = "snapshotevents";
+//        String domainEventsCollectionName = "domainevents";
+//        String databaseName = "exchange";
+//        MongoTemplate mongoTemplate = new DefaultMongoTemplate(mongo, databaseName, domainEventsCollectionName, snapshotEventsCollectionName, userName, password);
+//        return new MongoEventStore(mongoTemplate);        
+//    }
+    
     @Produces
     @ApplicationScoped
     public EventScheduler eventScheduler(EventBus eventBus) {
@@ -69,7 +101,7 @@ public class AxonConfiguration {
     @Produces
     @AutoConfigure
     @ApplicationScoped
-    public AggregateSnapshotter snapshotter(SnapshotEventStore snapshotEventStore) {
+    public AggregateSnapshotter snapshotter() {
         return new AggregateSnapshotter();
     }
 

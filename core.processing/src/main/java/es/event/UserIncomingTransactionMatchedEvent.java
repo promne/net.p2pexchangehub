@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 public class UserIncomingTransactionMatchedEvent {
 
-    private final String id;
+    private final String userAccountId;
     
     private final String transactionId;
     
@@ -14,17 +14,17 @@ public class UserIncomingTransactionMatchedEvent {
     
     private final BigDecimal newBalance;
 
-    public UserIncomingTransactionMatchedEvent(String id, String transactionId, BigDecimal amount, String currency, BigDecimal newBalance) {
+    public UserIncomingTransactionMatchedEvent(String userAccountId, String transactionId, BigDecimal amount, String currency, BigDecimal newBalance) {
         super();
-        this.id = id;
+        this.userAccountId = userAccountId;
         this.transactionId = transactionId;
         this.amount = amount;
         this.currency = currency;
         this.newBalance = newBalance;
     }
 
-    public String getId() {
-        return id;
+    public String getUserAccountId() {
+        return userAccountId;
     }
 
     public String getTransactionId() {

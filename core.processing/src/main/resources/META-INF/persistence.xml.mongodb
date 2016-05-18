@@ -1,0 +1,30 @@
+<persistence version="2.1"
+	xmlns="http://xmlns.jcp.org/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence 
+ http://www.oracle.com/webfolder/technetwork/jsc/xml/ns/persistence/persistence_2_1.xsd">
+
+	<persistence-unit name="mongo-ogm" transaction-type="JTA">
+		<provider>org.hibernate.ogm.jpa.HibernateOgmPersistence</provider>
+		<class>esw.domain.BankAccount</class>
+		<class>esw.domain.BankCommunication</class>
+		<class>esw.domain.BankTransaction</class>
+		<class>esw.domain.ConfigurationItem</class>
+		<class>esw.domain.Offer</class>
+		<class>esw.domain.UserAccount</class>
+		<class>george.test.exchange.core.domain.entity.CurrencyConfiguration</class>
+		<exclude-unlisted-classes>false</exclude-unlisted-classes>
+		<properties>
+			<property name="hibernate.transaction.jta.platform" value="org.hibernate.service.jta.platform.internal.JBossAppServerJtaPlatform" />
+			<property name="hibernate.ogm.datastore.create_database" value="true" />
+			<property name="hibernate.ogm.datastore.database" value="exchangeews" />
+			<property name="hibernate.ogm.datastore.host" value="192.168.56.101" />
+			<property name="hibernate.ogm.datastore.provider" value="MONGODB" />
+      <!-- Just in case your DB needs user/name password
+            <property name="hibernate.ogm.datastore.username" value="db_user" />
+            <property name="hibernate.ogm.datastore.password" value="top_secret!" />
+       -->
+			
+		</properties>
+
+	</persistence-unit>
+</persistence>

@@ -1,18 +1,12 @@
 package george.test.exchange.client;
 
-import com.vaadin.addon.jpacontainer.JPAContainer;
-import com.vaadin.addon.jpacontainer.JPAContainerFactory;
+import com.vaadin.addon.contextmenu.GridContextMenu;
 import com.vaadin.cdi.CDIView;
-import com.vaadin.data.Item;
-import com.vaadin.data.util.GeneratedPropertyContainer;
-import com.vaadin.data.util.PropertyValueGenerator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.Grid;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
-import com.vaadin.ui.renderers.ButtonRenderer;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -31,11 +25,13 @@ import es.command.CreateOfferCommand;
 import es.command.MatchExchangeOfferCommand;
 import esw.domain.Offer;
 import esw.view.BankAccountView;
+import esw.view.UserAccountView;
+import george.test.exchange.client.components.OfferGrid;
 import george.test.exchange.client.form.OfferEditor;
 import george.test.exchange.core.domain.offer.OfferState;
 
-@CDIView(OffersView.VIEW_NAME)
-public class OffersView extends VerticalLayout implements View {
+@CDIView(OfferView.VIEW_NAME)
+public class OfferView extends VerticalLayout implements View {
 
     public static final String VIEW_NAME = "OffersView";
 
@@ -46,44 +42,36 @@ public class OffersView extends VerticalLayout implements View {
     private BankAccountView bankAccountView;
     
     @Inject
+    private UserAccountView userAccountView;
+    
+    @Inject
     private CommandGateway gateway;
     
-    private JPAContainer<Offer> offersContainer;
-
+    @Inject
+    private OfferGrid offerGrid;
+    
     private String userAccountId = "usac1"; //TODO variable
     
     @PostConstruct
     private void init() {
         setSizeFull();
 
-        offersContainer = JPAContainerFactory.make(Offer.class, em);
-        offersContainer.setReadOnly(true);
-        
-        
-        GeneratedPropertyContainer gpcOffers = new GeneratedPropertyContainer(offersContainer);
-        gpcOffers.addGeneratedProperty("action", new PropertyValueGenerator<String>() {
-
-            @Override
-            public String getValue(Item item, Object itemId, Object propertyId) {
-                return offersContainer.getItem(itemId).getEntity().getState()==OfferState.UNPAIRED ? "Match" : null;
-            }
-
-            @Override
-            public Class<String> getType() {
-                return String.class;
+        GridContextMenu offerContextMenu = offerGrid.getContextMenu();
+        offerContextMenu.addGridBodyContextMenuListener(e -> {
+            Object itemId = e.getItemId();
+            if (itemId!=null) {
+                Offer offer = offerGrid.getJPAContainerDataSource().getItem(itemId).getEntity();
+                if (offer.getState()==OfferState.UNPAIRED) {
+                    offerContextMenu.addSeparator();
+                    offerContextMenu.addItem("Match with offer", mc -> {
+                        BigDecimal amountRequested = offer.getAmountOfferedMin();
+                        BigDecimal amountOffered = amountRequested.multiply(offer.getAmountRequestedExchangeRate()).setScale(1, RoundingMode.UP);                        
+                        gateway.send(new MatchExchangeOfferCommand(UUID.randomUUID().toString(), offer.getId(), "usac2", amountOffered, amountRequested));
+                    });
+                }
             }
         });
         
-        Grid offerGrid= new Grid("Offers", gpcOffers);
-        offerGrid.setSizeFull();
-        offerGrid.getColumn("action").setRenderer(new ButtonRenderer(e -> {
-            Offer offer = offersContainer.getItem(e.getItemId()).getEntity();
-                        
-            BigDecimal amountRequested = offer.getAmountOfferedMin();
-            BigDecimal amountOffered = amountRequested.multiply(offer.getAmountRequestedExchangeRate()).setScale(1, RoundingMode.UP);
-            
-            gateway.send(new MatchExchangeOfferCommand(UUID.randomUUID().toString(), offer.getId(), "usac2", amountOffered, amountRequested));
-        }));
         
         addComponent(offerGrid);
         setExpandRatio(offerGrid, 1.0f);
@@ -96,7 +84,8 @@ public class OffersView extends VerticalLayout implements View {
 
     private void createNew() {
         OfferEditor editor = new OfferEditor(bankAccountView.listAvailableCurrencies());
-        Window window = new MWindow("New offer", editor).withModal(true);
+        Window window = new MWindow("New offer", editor).withModal(true).withResizable(false)
+                .withWidth("30%"); //TODO otherwise goes screen wide
         
         editor.setSavedHandler(offer -> {
             window.close();
@@ -113,7 +102,7 @@ public class OffersView extends VerticalLayout implements View {
     }
 
     private void refreshOffers() {
-        offersContainer.refresh();
+        offerGrid.refresh();
     }
     
     @Override

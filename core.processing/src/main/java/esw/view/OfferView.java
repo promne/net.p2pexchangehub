@@ -31,13 +31,23 @@ public class OfferView {
         CriteriaQuery<Offer> cq = cb.createQuery(Offer.class);
         Root<Offer> rootEntry = cq.from(Offer.class);
         CriteriaQuery<Offer> all = cq.select(rootEntry);
-        cq.where(cb.equal(rootEntry.get(Offer.STATE_PROPERTY), state));
+        cq.where(cb.equal(rootEntry.get(Offer.PROPERTY_STATE), state));
         TypedQuery<Offer> allQuery = em.createQuery(all);
         return allQuery.getResultList();
     }
 
     public Offer get(String offerId) {
         return em.find(Offer.class, offerId);
+    }
+
+    public List<Offer> listOffersForUser(String userAccountId) {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<Offer> cq = cb.createQuery(Offer.class);
+        Root<Offer> rootEntry = cq.from(Offer.class);
+        CriteriaQuery<Offer> all = cq.select(rootEntry);
+        cq.where(cb.equal(rootEntry.get(Offer.PROPERTY_USER_ACCOUNT_ID), userAccountId));
+        TypedQuery<Offer> allQuery = em.createQuery(all);
+        return allQuery.getResultList();
     }
     
 }

@@ -8,8 +8,10 @@ public class ConfigurationItem {
 
     @Id
     private String name;
+    public static final String PROPERTY_NAME = "name";
     
     private String value;
+    public static final String PROPERTY_VALUE = "value";
 
     public ConfigurationItem() {
         super();

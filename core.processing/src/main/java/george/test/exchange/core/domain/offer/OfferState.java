@@ -7,6 +7,7 @@ public enum OfferState {
     PAYMENT_RECEIVED,
     SEND_MONEY_REQUESTED, 
     CLOSED,
+    CANCELED
     ;
     
 }

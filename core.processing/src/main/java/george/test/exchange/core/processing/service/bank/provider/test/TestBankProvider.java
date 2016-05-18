@@ -53,7 +53,7 @@ public class TestBankProvider extends BankProviderBase<TestBankAccount, TestBank
 //                .defaultProxy("localhost", 8888)
 //                .defaultProxy("jos-repo-server.datacom.co.nz", 3128)
                 .establishConnectionTimeout(7, TimeUnit.SECONDS)
-                .disableTrustManager()
+//                .disableTrustManager()
                 .register(CdiInjectorFactory.class)
                 .register(JacksonJsonProvider.class)
 //                .register(MyClientRequestFilter.class)
@@ -70,7 +70,7 @@ public class TestBankProvider extends BankProviderBase<TestBankAccount, TestBank
     
     @Override
     protected TestBankContext loginInternal(TestBankAccount bankAccount) throws BankProviderException {
-        bb.setBankAccount(bankAccount);
+        bb.setBankAccountId(bankAccount.getId());
         try {
             String sessionId = client.login(bankAccount.getUsername(), bankAccount.getPassword());
             return new TestBankContext(bankAccount, sessionId);
@@ -81,11 +81,12 @@ public class TestBankProvider extends BankProviderBase<TestBankAccount, TestBank
 
     @Override
     protected List<TestBankTransaction> listTransactionsInternal(TestBankContext context, Date fromDate, Date toDate) throws BankProviderException {
-        bb.setBankAccount(context.getBankAccount());
+        bb.setBankAccountId(context.getBankAccount().getId());
         List<Transaction> listTransactions;
         try {
-            listTransactions = client.listTransactions(context.getSessionId(), context.getBankAccount().getAccountNumber()).stream().filter(i -> i.getDate().after(fromDate) && i.getDate().before(toDate)).collect(Collectors.toList());
+            listTransactions = client.listTransactions(context.getSessionId(), context.getBankAccount().getAccountNumber()).stream().filter(i -> i.getDate().compareTo(fromDate)>0 && i.getDate().compareTo(toDate)<=0).collect(Collectors.toList());
         } catch (WebApplicationException e) {
+            context.deactivate();
             throw new BankProviderException(e);
         }
         
@@ -97,7 +98,7 @@ public class TestBankProvider extends BankProviderBase<TestBankAccount, TestBank
             bankTr.setDate(tr.getDate());
             bankTr.setTbDetail(tr.getDetail());
             bankTr.setTbId(tr.getId());
-            bankTr.setTbFromAccount(tr.getFromAccount());
+            bankTr.setOtherAccount(tr.getFromAccount());
             result.add(bankTr);
         }
         return result;
@@ -105,7 +106,7 @@ public class TestBankProvider extends BankProviderBase<TestBankAccount, TestBank
 
     @Override
     protected void processTransactionRequestInternal(TestBankContext context, TransactionRequestExternal transactionRequest) throws BankProviderException {
-        bb.setBankAccount(context.getBankAccount());
+        bb.setBankAccountId(context.getBankAccount().getId());
         Transaction transaction = new Transaction();
         transaction.setToAccount(transactionRequest.getRecipientAccountNumber());
         transaction.setDetail(transactionRequest.getDetailInfo());
@@ -120,7 +121,7 @@ public class TestBankProvider extends BankProviderBase<TestBankAccount, TestBank
 
     @Override
     protected BigDecimal getBalanceInternal(TestBankContext context) throws BankProviderException {
-        bb.setBankAccount(context.getBankAccount());
+        bb.setBankAccountId(context.getBankAccount().getId());
         try {
             return client.listAccounts(context.getSessionId()).stream().filter(a -> context.getBankAccount().getAccountNumber().equals(a.getNumber())).map(Account::getBalance).findAny().orElse(BigDecimal.ZERO);
         } catch (WebApplicationException e) {

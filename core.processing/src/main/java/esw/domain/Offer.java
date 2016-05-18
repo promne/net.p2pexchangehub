@@ -13,42 +13,62 @@ public class Offer {
 
     @Id
     private String id;
+    public static final String PROPERTY_ID = "id";
 
     private String userAccountId;
+    public static final String PROPERTY_USER_ACCOUNT_ID = "userAccountId";
 
     private String currencyOffered;
+    public static final String PROPERTY_CURRENCY_OFFERED = "currencyOffered";
 
     @Column(precision=10, scale=4)
     private BigDecimal amountOfferedMin;
+    public static final String PROPERTY_AMOUNT_OFFERED_MIN = "amountOfferedMin";
 
     @Column(precision=10, scale=4)
     private BigDecimal amountOfferedMax;
+    public static final String PROPERTY_AMOUNT_OFFERED_MAX = "amountOfferedMax";
 
     @Column(precision=10, scale=4)
     private BigDecimal amountOffered;
+    public static final String PROPERTY_AMOUNT_OFFERED = "amountOffered";
 
     @Column(precision=10, scale=4)
     private BigDecimal amountReceived = BigDecimal.ZERO;
+    public static final String PROPERTY_AMOUNT_RECEIVED = "amountReceived";
+
+    @Column(precision=10, scale=4)
+    private BigDecimal amountSent = BigDecimal.ZERO;
+    public static final String PROPERTY_AMOUNT_SENT = "amountSent";
 
     private String currencyRequested;
+    public static final String PROPERTY_CURRENCY_REQUESTED = "currencyRequested";
 
     @Column(precision=10, scale=4)
     private BigDecimal amountRequestedExchangeRate;
+    public static final String PROPERTY_AMOUNT_REQUESTED_EXCHANGE_RATE = "amountRequestedExchangeRate";
 
     @Column(precision=10, scale=4)
     private BigDecimal amountRequested;
+    public static final String PROPERTY_AMOUNT_REQUESTED = "amountRequestedExchangeRate";
 
     private OfferState state;
-    public static final String STATE_PROPERTY = "state";
+    public static final String PROPERTY_STATE = "state";
 
     private String ownerAccountNumber;
+    public static final String PROPERTY_OWNER_ACCOUNT_NUMBER = "ownerAccountNumber";
 
     private String matchedExchangeOfferId;
+    public static final String PROPERTY_MATCHED_EXCHANGE_OFFER_ID = "matchedExchangeOfferId";
 
     private String referenceId;
+    public static final String PROPERTY_REFERENCE_ID = "referenceId";
 
-    private String incomimgPaymentBankAccountId;
+    private String incomingPaymentBankAccountId;
+    public static final String PROPERTY_INCOMING_PAYMENT_BANK_ACCOUNT_ID = "incomingPaymentBankAccountId";
 
+    private String outgoingPaymentBankAccountId;
+    
     public Offer() {
         super();
     }
@@ -165,12 +185,28 @@ public class Offer {
         this.referenceId = referenceId;
     }
 
-    public String getIncomimgPaymentBankAccountId() {
-        return incomimgPaymentBankAccountId;
+    public String getIncomingPaymentBankAccountId() {
+        return incomingPaymentBankAccountId;
     }
 
-    public void setIncomimgPaymentBankAccountId(String incomimgPaymentBankAccountId) {
-        this.incomimgPaymentBankAccountId = incomimgPaymentBankAccountId;
+    public void setIncomingPaymentBankAccountId(String incomingPaymentBankAccountId) {
+        this.incomingPaymentBankAccountId = incomingPaymentBankAccountId;
+    }
+
+    public String getOutgoingPaymentBankAccountId() {
+        return outgoingPaymentBankAccountId;
+    }
+
+    public void setOutgoingPaymentBankAccountId(String outgoingPaymentBankAccountId) {
+        this.outgoingPaymentBankAccountId = outgoingPaymentBankAccountId;
+    }
+
+    public BigDecimal getAmountSent() {
+        return amountSent;
+    }
+
+    public void setAmountSent(BigDecimal amountSent) {
+        this.amountSent = amountSent;
     }
     
 }

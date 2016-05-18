@@ -1,7 +1,8 @@
 package george.test.exchange.core.domain;
 
-public enum UserRole {
+public enum UserAccountRole {
 
+    TRADER,
     OPERATOR,
     ADMIN;
     

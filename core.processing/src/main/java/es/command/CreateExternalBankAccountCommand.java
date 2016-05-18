@@ -8,17 +8,14 @@ public class CreateExternalBankAccountCommand {
 
     private final String currency;
 
-    private final String country;
-
     private final String accountNumber;
 
     private final ExternalBankType bankType;
 
-    public CreateExternalBankAccountCommand(String bankAccountId, String currency, String country, String accountNumber, ExternalBankType bankType) {
+    public CreateExternalBankAccountCommand(String bankAccountId, String currency, String accountNumber, ExternalBankType bankType) {
         super();
         this.bankAccountId = bankAccountId;
         this.currency = currency;
-        this.country = country;
         this.accountNumber = accountNumber;
         this.bankType = bankType;
     }
@@ -29,10 +26,6 @@ public class CreateExternalBankAccountCommand {
 
     public String getCurrency() {
         return currency;
-    }
-
-    public String getCountry() {
-        return country;
     }
 
     public String getAccountNumber() {

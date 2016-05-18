@@ -10,7 +10,9 @@ import org.axonframework.eventhandling.annotation.EventHandler;
 import org.axonframework.eventsourcing.annotation.AbstractAnnotatedAggregateRoot;
 import org.axonframework.eventsourcing.annotation.AggregateIdentifier;
 
-import es.aggregate.TransactionSplit.PartnerType;
+import es.aggregate.value.BankSpecificTransactionData;
+import es.aggregate.value.TransactionSplit;
+import es.aggregate.value.TransactionSplit.PartnerType;
 import es.event.ExternalBankTransactionCreatedEvent;
 import es.event.ExternalBankTransactionSplitCreated;
 import es.event.ExternalBankTransactionStateChangedEvent;
@@ -25,18 +27,14 @@ public class ExternalBankTransaction extends AbstractAnnotatedAggregateRoot<Stri
     
     private BigDecimal amount;
 
+    private String fromAccount;
+    
     private Date date;
 
     private ExternalBankTransactionState state;
 
-    private String fromAccount;
-
-    private String detailInfo;
-
-    private String externalId;
-    
     private List<TransactionSplit> transactionSplits = new ArrayList<>();
-
+    
     public ExternalBankTransaction() {
         super();
     }
@@ -52,22 +50,14 @@ public class ExternalBankTransaction extends AbstractAnnotatedAggregateRoot<Stri
     public Date getDate() {
         return date;
     }
-
-    public String getDetailInfo() {
-        return detailInfo;
-    }
-
-    public String getExternalId() {
-        return externalId;
-    }
     
     public String getBankAccountId() {
         return bankAccountId;
     }
 
-    public ExternalBankTransaction(String id, String bankAccountId, BigDecimal amount, Date date, String fromAccount, String detailInfo, String externalId) {
+    public ExternalBankTransaction(String id, String bankAccountId, BigDecimal amount, Date date, String fromAccount, String referenceInfo, BankSpecificTransactionData bankSpecificTransactionData) {
         super();
-        apply(new ExternalBankTransactionCreatedEvent(id, bankAccountId, amount, date, fromAccount, detailInfo, externalId));
+        apply(new ExternalBankTransactionCreatedEvent(id, bankAccountId, amount, date, fromAccount, referenceInfo, bankSpecificTransactionData));
         apply(new ExternalBankTransactionStateChangedEvent(id, ExternalBankTransactionState.IMPORTED));
     }
 
@@ -76,9 +66,6 @@ public class ExternalBankTransaction extends AbstractAnnotatedAggregateRoot<Stri
         amount = event.getAmount();
         bankAccountId = event.getBankAccountId();
         date = event.getDate();
-        detailInfo = event.getDetailInfo();
-        externalId = event.getExternalId();
-        fromAccount = event.getFromAccount();
         id = event.getId();
     }
 

@@ -2,6 +2,7 @@ package es.aggregate;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.Properties;
 
 import org.axonframework.eventhandling.annotation.EventHandler;
 import org.axonframework.eventsourcing.annotation.AbstractAnnotatedAggregateRoot;
@@ -11,6 +12,7 @@ import es.event.ExternalBankAccountActiveSetEvent;
 import es.event.ExternalBankAccountCommunicationLoggedEvent;
 import es.event.ExternalBankAccountCreatedEvent;
 import es.event.ExternalBankAccountCredentialsSetEvent;
+import es.event.ExternalBankAccountSynchronizationRequestedEvent;
 import es.event.ExternalBankAccountSynchronizedEvent;
 import george.test.exchange.core.domain.ExternalBankType;
 
@@ -20,8 +22,6 @@ public abstract class ExternalBankAccount extends AbstractAnnotatedAggregateRoot
     private String id;
 
     private String currency;
-
-    private String country;
 
     private BigDecimal balance;
 
@@ -36,6 +36,8 @@ public abstract class ExternalBankAccount extends AbstractAnnotatedAggregateRoot
     private String password;
 
     private ExternalBankType bankType;
+    
+    private Properties providerConfiguration;
 
     public ExternalBankAccount() {
         super();
@@ -74,9 +76,9 @@ public abstract class ExternalBankAccount extends AbstractAnnotatedAggregateRoot
     }
 
 
-    public ExternalBankAccount(String id, String currency, String country, String accountNumber, ExternalBankType bankType) {
+    public ExternalBankAccount(String id, String currency, String accountNumber, ExternalBankType bankType) {
         super();
-        apply(new ExternalBankAccountCreatedEvent(id, currency, country, accountNumber, bankType));
+        apply(new ExternalBankAccountCreatedEvent(id, currency, accountNumber, bankType));
     }
     
     @EventHandler
@@ -84,7 +86,6 @@ public abstract class ExternalBankAccount extends AbstractAnnotatedAggregateRoot
         accountNumber = event.getAccountNumber();
         id = event.getBankAccountId();
         bankType = event.getBankType();
-        country = event.getCountry();
         currency = event.getCurrency();
     }
     
@@ -98,6 +99,15 @@ public abstract class ExternalBankAccount extends AbstractAnnotatedAggregateRoot
         password = event.getPassword();
     }
  
+    public void requestSynchronization() {
+        apply(new ExternalBankAccountSynchronizationRequestedEvent(id));        
+    }
+
+    @EventHandler
+    private void handleSynchronizationRequested(ExternalBankAccountSynchronizationRequestedEvent event) {
+        // nothing
+    }
+    
     public void setSynchronized(Date syncDate, BigDecimal balance) {
         apply(new ExternalBankAccountSynchronizedEvent(id, syncDate, balance));
     }

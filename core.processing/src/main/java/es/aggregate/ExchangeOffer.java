@@ -8,8 +8,10 @@ import org.axonframework.eventsourcing.annotation.AbstractAnnotatedAggregateRoot
 import org.axonframework.eventsourcing.annotation.AggregateIdentifier;
 
 import es.event.OfferCreatedEvent;
+import es.event.OfferIncomingPaymentExternalAccountChangedEvent;
 import es.event.OfferIncomingTransactionMatchedEvent;
 import es.event.OfferMatchedEvent;
+import es.event.OfferOutgoingTransactionMatchedEvent;
 import es.event.OfferOwnerBankNumberChangedEvent;
 import es.event.OfferStateChangedEvent;
 import george.test.exchange.core.domain.offer.OfferState;
@@ -33,6 +35,9 @@ public class ExchangeOffer extends AbstractAnnotatedAggregateRoot<String> {
     // received amount towards amountOffered
     private BigDecimal amountReceived = BigDecimal.ZERO;
 
+    // received amount towards amountRequested
+    private BigDecimal amountSent = BigDecimal.ZERO;
+
     private String currencyRequested;
 
     private BigDecimal amountRequestedExchangeRate;
@@ -43,6 +48,8 @@ public class ExchangeOffer extends AbstractAnnotatedAggregateRoot<String> {
     private OfferState state;
 
     private String ownerAccountNumber;
+    
+    private String incomingExternalBankAccountId;
 
     private String matchedExchangeOfferId;
 
@@ -108,6 +115,10 @@ public class ExchangeOffer extends AbstractAnnotatedAggregateRoot<String> {
         return referenceId;
     }
 
+    public String getIncomingExternalBankAccountId() {
+        return incomingExternalBankAccountId;
+    }
+
     @EventHandler
     private void handleStateChanged(OfferStateChangedEvent event) {
         this.state = event.getNewState();
@@ -156,9 +167,13 @@ public class ExchangeOffer extends AbstractAnnotatedAggregateRoot<String> {
         this.amountOffered = event.getAmountOffered();
         this.amountRequested = event.getAmountRequested();
         this.matchedExchangeOfferId = event.getMatchedOfferId();
+        this.referenceId = event.getReferenceId();
     }
 
     public void matchIncomingTransaction(String transactionId, BigDecimal amount) {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0 ) {
+            throw new IllegalArgumentException("Amount has to be a positive number: " + amount);
+        }
         if (state != OfferState.WAITING_FOR_PAYMENT) {
             throw new IllegalStateException(String.format("Unable to accept incoming transaction %s for offer %s with state %s", transactionId, id, state));
         }
@@ -175,6 +190,28 @@ public class ExchangeOffer extends AbstractAnnotatedAggregateRoot<String> {
     @EventHandler
     private void handleIncomingTransactionMatched(OfferIncomingTransactionMatchedEvent event) {
         this.amountReceived = event.getNewBalance();
+    }
+    
+    public void matchOutgoingTransaction(String transactionId, BigDecimal amount) {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0 ) {
+            throw new IllegalArgumentException("Amount has to be a positive number: " + amount);
+        }
+        if (state != OfferState.SEND_MONEY_REQUESTED) {
+            throw new IllegalStateException(String.format("Unable to accept outgoing transaction %s for offer %s with state %s", transactionId, id, state));
+        }
+        BigDecimal newBalance = amountSent.add(amount);
+        if (newBalance.compareTo(amountRequested) > 0) {
+            throw new IllegalStateException(String.format("Unable to accept additional %s for offer %s from transaction %s", amount, id, transactionId));
+        }
+        apply(new OfferOutgoingTransactionMatchedEvent(id, transactionId, amount, newBalance));
+        if (newBalance.compareTo(amountRequested) == 0) {
+            apply(new OfferStateChangedEvent(this.id, OfferState.CLOSED));
+        }        
+    }
+
+    @EventHandler
+    private void handleOutgoingTransactionMatched(OfferOutgoingTransactionMatchedEvent event) {
+        amountSent = event.getNewBalance();
     }
 
     public void requestPayment() {
@@ -194,6 +231,25 @@ public class ExchangeOffer extends AbstractAnnotatedAggregateRoot<String> {
     @EventHandler
     private void handleOfferOwnerBankNumberChanged(OfferOwnerBankNumberChangedEvent event) {
         ownerAccountNumber = event.getNewAccountNumber();
+    }
+
+    public void setIncomingPaymentExternalAccount(String bankAccountId) {
+        if (!Arrays.asList(OfferState.UNPAIRED, OfferState.WAITING_FOR_PAYMENT).contains(state)) {
+            throw new IllegalStateException(String.format("Unable to set incoming bank account for offer %s with state %s", id, state));            
+        }
+        apply(new OfferIncomingPaymentExternalAccountChangedEvent(id, bankAccountId));
+    }
+    
+    @EventHandler
+    private void handleOfferIncomingPaymentExternalAccountChanged(OfferIncomingPaymentExternalAccountChangedEvent event) {
+        incomingExternalBankAccountId = event.getBankAccountId();
+    }
+
+    public void cancel() {
+        if (!Arrays.asList(OfferState.UNPAIRED).contains(state)) {
+            throw new IllegalStateException(String.format("Unable to cancel offer %s with state %s", id, state));            
+        }
+        apply(new OfferStateChangedEvent(id, OfferState.CANCELED));
     }
     
 }

@@ -6,7 +6,6 @@ public class ExternalBankAccountCommunicationLoggedEvent {
 
     private final String data;
 
-
     public ExternalBankAccountCommunicationLoggedEvent(String bankAccountId, String data) {
         super();
         this.bankAccountId = bankAccountId;

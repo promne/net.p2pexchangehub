@@ -8,8 +8,8 @@ public class TestBankAccount extends ExternalBankAccount {
         super();
     }
 
-    public TestBankAccount(String id, String currency, String country, String accountNumber) {
-        super(id, currency, country, accountNumber, ExternalBankType.TEST);
+    public TestBankAccount(String id, String currency, String accountNumber) {
+        super(id, currency, accountNumber, ExternalBankType.TEST);
     }
 
     

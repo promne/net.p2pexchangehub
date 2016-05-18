@@ -1,6 +1,8 @@
 package esw.view;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.ejb.Stateless;
@@ -27,16 +29,17 @@ public class BankAccountView {
         TypedQuery<BankAccount> allQuery = em.createQuery(all);
         return allQuery.getResultList();
     }
-    
-    public List<BankAccount> listAccounts(String currency) {
-        return listBankAccounts().stream().filter(a -> a.getCurrency().equals(currency)).collect(Collectors.toList());        
+
+    public List<BankAccount> listActiveAccounts(String currency) {
+        return listBankAccounts().stream().filter(a -> a.isActive() && a.getCurrency().equals(currency)).collect(Collectors.toList());
     }
 
-    public BankAccount getBankAccount(String bankAccountId) {
-        return em.find(BankAccount.class, bankAccountId);
+    public Optional<BankAccount> getBankAccount(String bankAccountId) {
+        return Optional.ofNullable(em.find(BankAccount.class, bankAccountId));
     }
-    
-    public List<String> listAvailableCurrencies() {
-        return listBankAccounts().stream().map(BankAccount::getCurrency).collect(Collectors.toList());
+
+    public Set<String> listAvailableCurrencies() {
+        return listBankAccounts().stream().filter(BankAccount::isActive).map(BankAccount::getCurrency).collect(Collectors.toSet());
     }
+
 }

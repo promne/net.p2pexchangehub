@@ -26,12 +26,40 @@ $v-selection-item-border-radius: 0;
 @mixin mytheme {
   @include valo;
 
-	.colored-table .v-table-cell-content-lightyellow {
+	.colored-grid .content-warning {
 	    background: #FFFFBB;
 	}
 	
-	.colored-table .v-selected .v-table-cell-content-lightyellow {
+	.colored-grid .v-grid-row-selected .content-warning {
 		background: #57a7ed;
+		color: #fff;
+	}
+
+	.colored-grid .content-good {
+	    background: #5FD361;
+	}
+	
+	.colored-grid .v-grid-row-selected .content-good {
+		background: #57a7ed;
+		color: #fff;
+	}
+
+	.colored-grid .content-good-highlight {
+	    background: #C9FFCB;
+	}
+	
+	.colored-grid .v-grid-row-selected .content-good-highlight {
+		background: #57a7ed;
+		color: #fff;
+	}
+
+	.colored-grid .content-error {
+	    background: #DD0000;
+		color: #fff;
+	}
+	
+	.colored-grid .v-grid-row-selected .content-error {
+		background: #FF0000;
 		color: #fff;
 	}
 

@@ -1,4 +1,4 @@
-package es.aggregate;
+package es.aggregate.value;
 
 import java.math.BigDecimal;
 

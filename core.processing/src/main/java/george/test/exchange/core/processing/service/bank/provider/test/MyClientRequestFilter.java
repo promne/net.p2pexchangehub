@@ -23,6 +23,8 @@ import javax.ws.rs.ext.WriterInterceptorContext;
 
 import org.axonframework.commandhandling.gateway.CommandGateway;
 
+import es.command.LogExternalBankAccountCommunicationCommand;
+
 public class MyClientRequestFilter implements ClientRequestFilter, ClientResponseFilter, WriterInterceptor {
 
     public static final Charset UTF8 = Charset.forName("UTF-8");
@@ -130,7 +132,7 @@ public class MyClientRequestFilter implements ClientRequestFilter, ClientRespons
     }
 
     private void log(final StringBuilder b) {
-        bean.getBankAccount().logCommunication(b.toString());
+        gateway.send(new LogExternalBankAccountCommunicationCommand(bean.getBankAccountId(), b.toString()));
     }
 
     private class LoggingStream extends FilterOutputStream {

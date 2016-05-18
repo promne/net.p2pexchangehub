@@ -1,6 +1,6 @@
 package es.event;
 
-import es.aggregate.TransactionSplit;
+import es.aggregate.value.TransactionSplit;
 
 public class ExternalBankTransactionSplitCreated {
 

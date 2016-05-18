@@ -1,10 +1,10 @@
 package es.command;
 
-public class SynchronizeExternalBankTransactionsCommand {
+public class RequestExternalBankSynchronizationCommand {
 
     private final String bankAccountId;
 
-    public SynchronizeExternalBankTransactionsCommand(String bankAccountId) {
+    public RequestExternalBankSynchronizationCommand(String bankAccountId) {
         super();
         this.bankAccountId = bankAccountId;
     }

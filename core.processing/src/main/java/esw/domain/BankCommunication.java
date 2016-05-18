@@ -6,7 +6,6 @@ import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -25,7 +24,7 @@ public class BankCommunication {
     private BankAccount bankAccount;
     public static final String BANK_ACCOUNT_PROPERTY = "bankAccount";
 
-    @Lob
+//    @Lob removed because mongo ogm 
     private String data;
 
     public BankCommunication() {

@@ -4,8 +4,6 @@ public enum ExternalBankTransactionState {
 
     IMPORTED,
     PARTIAL_MATCH,
-    MATCHED,
-    
-    REQUESTED;
+    MATCHED;
     
 }

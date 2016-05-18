@@ -24,10 +24,16 @@ public class BankTransaction {
     @ManyToOne
     private BankAccount bankAccount;
     public static final String PROPERTY_BANK_ACCOUNT = "bankAccount";
+
+    private String fromAccount;
+    public static final String PROPERTY_FROM_ACCOUNT = "fromAccount";
     
     private ExternalBankTransactionState state;
     public static final String PROPERTY_STATE = "state";
 
+    private String referenceInfo;
+    public static final String PROPERTY_REFERENCE_INFO = "referenceInfo";
+    
     private String detail;
     public static final String PROPERTY_DETAIL = "detail";
 
@@ -39,10 +45,22 @@ public class BankTransaction {
         return id;
     }
 
+    public String getFromAccount() {
+        return fromAccount;
+    }
+
+    public void setFromAccount(String fromAccount) {
+        this.fromAccount = fromAccount;
+    }
+
     public void setId(String id) {
         this.id = id;
     }
 
+    public boolean isIncoming() {
+        return BigDecimal.ZERO.compareTo(amount) < 0;
+    }
+    
     public BigDecimal getAmount() {
         return amount;
     }
@@ -81,6 +99,14 @@ public class BankTransaction {
 
     public void setBankAccount(BankAccount bankAccount) {
         this.bankAccount = bankAccount;
+    }
+
+    public String getReferenceInfo() {
+        return referenceInfo;
+    }
+
+    public void setReferenceInfo(String referenceInfo) {
+        this.referenceInfo = referenceInfo;
     }
 
 }

@@ -7,10 +7,10 @@ import org.axonframework.test.Fixtures;
 import org.junit.Before;
 import org.junit.Test;
 
-import es.aggregate.ExchangeOffer;
-import es.command.CreateOfferCommand;
-import es.command.handler.ExchangeOfferCommandHandler;
-import es.event.OfferCreatedEvent;
+import net.p2pexchangehub.core.api.offer.CreateOfferCommand;
+import net.p2pexchangehub.core.api.offer.OfferCreatedEvent;
+import net.p2pexchangehub.core.handler.offer.ExchangeOffer;
+import net.p2pexchangehub.core.handler.offer.ExchangeOfferCommandHandler;
 
 public class ExchangeOfferTest {
 

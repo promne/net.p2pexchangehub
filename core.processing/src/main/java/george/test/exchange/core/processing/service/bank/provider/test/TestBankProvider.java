@@ -19,20 +19,20 @@ import org.simple.bank.api.ClientBankApi;
 import org.simple.bank.api.JacksonJsonProvider;
 import org.simple.bank.api.Transaction;
 
-import es.aggregate.TestBankAccount;
-import esw.view.ConfigurationView;
 import george.test.exchange.core.domain.ExternalBankType;
 import george.test.exchange.core.domain.entity.TransactionRequestExternal;
 import george.test.exchange.core.processing.service.bank.BankProvider;
 import george.test.exchange.core.processing.service.bank.BankProviderBase;
 import george.test.exchange.core.processing.service.bank.BankProviderException;
+import net.p2pexchangehub.core.handler.external.bank.TestBankAccount;
+import net.p2pexchangehub.view.repository.ConfigurationRepository;
 
 public class TestBankProvider extends BankProviderBase<TestBankAccount, TestBankTransaction, TestBankContext> {
     
     public static final String CONFIG_WS_URL = BankProvider.CONFIG_BANK_PROVIDER_PREFIX + ".test.api_url";
     
     @Inject
-    private ConfigurationView configurationView;
+    private ConfigurationRepository configurationView;
 
     private ClientBankApi client;
     

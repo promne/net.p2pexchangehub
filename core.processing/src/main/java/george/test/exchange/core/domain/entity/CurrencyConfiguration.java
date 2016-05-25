@@ -1,9 +1,7 @@
 package george.test.exchange.core.domain.entity;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import org.springframework.data.annotation.Id;
 
-@Entity
 public class CurrencyConfiguration {
 
     @Id

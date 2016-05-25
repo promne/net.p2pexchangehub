@@ -4,10 +4,10 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
-import es.aggregate.ExternalBankAccount;
 import george.test.exchange.core.domain.ExternalBankType;
 import george.test.exchange.core.domain.entity.TransactionRequestExternal;
 import george.test.exchange.core.domain.entity.bank.ExternalBankTransaction;
+import net.p2pexchangehub.core.handler.external.bank.ExternalBankAccount;
 
 //has to be generics free, otherwise WELD @Any doesn't work
 public interface BankProvider {

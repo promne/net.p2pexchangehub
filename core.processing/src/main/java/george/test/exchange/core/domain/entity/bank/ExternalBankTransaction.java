@@ -9,8 +9,8 @@ import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 
-import es.aggregate.ExternalBankAccount;
 import george.test.exchange.core.domain.ExternalBankTransactionState;
+import net.p2pexchangehub.core.handler.external.bank.ExternalBankAccount;
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)

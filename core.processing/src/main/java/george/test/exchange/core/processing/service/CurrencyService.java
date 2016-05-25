@@ -5,24 +5,17 @@ import java.math.RoundingMode;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 
-import org.slf4j.Logger;
-
-import george.test.exchange.core.domain.entity.CurrencyConfiguration;
+import net.p2pexchangehub.view.repository.CurrencyConfigurationRepository;
 
 @Stateless
 public class CurrencyService {
 
-    @PersistenceContext
-    private EntityManager em;
-    
     @Inject
-    private Logger log;
+    private CurrencyConfigurationRepository repository;
 
     public BigDecimal calculateExchangePay(BigDecimal amount, String currencyOffered, String currencyRequested, BigDecimal exchangeRate) {
-        int precision = em.find(CurrencyConfiguration.class, currencyRequested).getScale();
+        int precision = repository.findOne(currencyRequested).getScale();
         BigDecimal result = amount.multiply(exchangeRate).setScale(precision, RoundingMode.HALF_UP);
         return result;
     }

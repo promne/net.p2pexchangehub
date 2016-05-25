@@ -23,7 +23,7 @@ import javax.ws.rs.ext.WriterInterceptorContext;
 
 import org.axonframework.commandhandling.gateway.CommandGateway;
 
-import es.command.LogExternalBankAccountCommunicationCommand;
+import net.p2pexchangehub.core.api.external.bank.LogExternalBankAccountCommunicationCommand;
 
 public class MyClientRequestFilter implements ClientRequestFilter, ClientResponseFilter, WriterInterceptor {
 

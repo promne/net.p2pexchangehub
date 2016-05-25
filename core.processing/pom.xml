@@ -161,6 +161,11 @@
 				<artifactId>deltaspike-core-impl</artifactId>
 				<version>1.4.1</version>
 			</dependency>
+			<dependency>
+				<groupId>org.mongodb</groupId>
+				<artifactId>mongo-java-driver</artifactId>
+				<version>2.14.0</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -184,13 +189,11 @@
 			<artifactId>axon-test</artifactId>
 			<version>${axonframework.version}</version>
 		</dependency>
-		<!-- 
 		<dependency>
 		   <groupId>org.axonframework</groupId>
 		   <artifactId>axon-mongo</artifactId>
 			<version>${axonframework.version}</version>
 		</dependency>
-		 -->		
 		 <dependency>
 			<groupId>com.github.kamaladafrica</groupId>
 			<artifactId>axon-cdi</artifactId>
@@ -225,12 +228,15 @@
 			<artifactId>vaadin-cdi</artifactId>
 			<version>1.0.3</version>
 		</dependency>	
+		<!-- 
 		<dependency>
 		   <groupId>com.vaadin.addon</groupId>
 		   <artifactId>jpacontainer</artifactId>
 		   <version>3.2.0</version>
 		</dependency>
-		<!-- 
+		 -->
+		 <!--
+		 patched version is part of the project 
 		<dependency>
 			<groupId>org.tylproject.vaadin.addon.mongodbcontainer</groupId>
 			<artifactId>mongodbcontainer-addon</artifactId>
@@ -286,6 +292,11 @@
 			<version>${slf4j.version}</version>
 		</dependency>
 
+	    <dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-mongodb</artifactId>
+			<version>1.9.1.RELEASE</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.mindrot</groupId>
@@ -314,6 +325,12 @@
 		</dependency>		
 
 
+
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>3.0.1</version>
+        </dependency>
 
 		<dependency>
 			<groupId>junit</groupId>

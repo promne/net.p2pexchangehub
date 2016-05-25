@@ -1,7 +1,7 @@
 package george.test.exchange.core.processing.service.bank.provider.test;
 
-import es.aggregate.TestBankAccount;
 import george.test.exchange.core.processing.service.bank.BankProviderContext;
+import net.p2pexchangehub.core.handler.external.bank.TestBankAccount;
 
 public class TestBankContext extends BankProviderContext<TestBankAccount> {
 
@@ -14,7 +14,7 @@ public class TestBankContext extends BankProviderContext<TestBankAccount> {
 
     @Override
     protected long getTimeout() {
-        return 300000;
+        return 30000;
     }
 
     public String getSessionId() {

@@ -3,9 +3,9 @@ package george.test.exchange.core.domain.entity;
 import javax.persistence.Entity;
 import javax.persistence.OneToOne;
 
-import es.aggregate.ExternalBankAccount;
 import george.test.exchange.core.domain.ExternalBankTransactionRequestState;
 import george.test.exchange.core.domain.entity.bank.ExternalBankTransaction;
+import net.p2pexchangehub.core.handler.external.bank.ExternalBankAccount;
 
 @Entity
 public class TransactionRequestExternal extends Transaction {

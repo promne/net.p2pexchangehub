@@ -2,7 +2,7 @@ package george.test.exchange.core.processing.service.bank;
 
 import java.util.Date;
 
-import es.aggregate.ExternalBankAccount;
+import net.p2pexchangehub.core.handler.external.bank.ExternalBankAccount;
 
 public abstract class BankProviderContext<A extends ExternalBankAccount> {
 

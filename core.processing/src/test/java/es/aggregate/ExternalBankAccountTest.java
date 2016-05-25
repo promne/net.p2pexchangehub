@@ -5,12 +5,13 @@ import org.axonframework.test.Fixtures;
 import org.junit.Before;
 import org.junit.Test;
 
-import es.command.CreateExternalBankAccountCommand;
-import es.command.SetExternalBankAccountCredentialsCommand;
-import es.command.handler.ExternalBankAccountCommandHandler;
-import es.event.ExternalBankAccountCreatedEvent;
-import es.event.ExternalBankAccountCredentialsSetEvent;
 import george.test.exchange.core.domain.ExternalBankType;
+import net.p2pexchangehub.core.api.external.bank.CreateExternalBankAccountCommand;
+import net.p2pexchangehub.core.api.external.bank.ExternalBankAccountCreatedEvent;
+import net.p2pexchangehub.core.api.external.bank.ExternalBankAccountCredentialsSetEvent;
+import net.p2pexchangehub.core.api.external.bank.SetExternalBankAccountCredentialsCommand;
+import net.p2pexchangehub.core.handler.external.bank.ExternalBankAccount;
+import net.p2pexchangehub.core.handler.external.bank.ExternalBankAccountCommandHandler;
 
 public class ExternalBankAccountTest {
 

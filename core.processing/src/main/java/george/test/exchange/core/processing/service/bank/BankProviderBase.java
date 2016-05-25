@@ -10,9 +10,9 @@ import javax.inject.Inject;
 
 import org.slf4j.Logger;
 
-import es.aggregate.ExternalBankAccount;
 import george.test.exchange.core.domain.entity.TransactionRequestExternal;
 import george.test.exchange.core.domain.entity.bank.ExternalBankTransaction;
+import net.p2pexchangehub.core.handler.external.bank.ExternalBankAccount;
 
 // because of weld being unable to inject generic, do the mapping to right type
 public abstract class BankProviderBase<A extends ExternalBankAccount, T extends ExternalBankTransaction, C extends BankProviderContext<A>> implements BankProvider {

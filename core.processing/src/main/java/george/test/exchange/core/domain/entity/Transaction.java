@@ -10,8 +10,8 @@ import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.Version;
 
-import es.aggregate.ExchangeOffer;
 import george.test.exchange.core.domain.TransactionState;
+import net.p2pexchangehub.core.handler.offer.ExchangeOffer;
 
 @Entity 
 @Inheritance(strategy = InheritanceType.JOINED)

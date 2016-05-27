@@ -13,6 +13,8 @@ import net.p2pexchangehub.view.repository.UserAccountRepository;
 
 public class UserAccountPaymentsCodeGenerator extends AbstractIgnoreReplayEventHandler {
 
+    public static final int CODE_LENGTH = 8;
+    
     @Inject
     private CommandGateway gateway;
     
@@ -22,10 +24,9 @@ public class UserAccountPaymentsCodeGenerator extends AbstractIgnoreReplayEventH
     @EventHandler
     public void handle(UserAccountCreatedEvent event) {
         if (isLive()) {
-            final int codeLength = 8;
-            String code = CodeGenerator.generateCode(codeLength);
+            String code = CodeGenerator.generateCode(CODE_LENGTH);
             while (repository.findOneByPaymentsCode(code).isPresent()) {
-                code = CodeGenerator.generateCode(codeLength);
+                code = CodeGenerator.generateCode(CODE_LENGTH);
             }        
             gateway.send(new ChangeUserAccountPaymentsCode(event.getUserAccountId(), code));            
         }

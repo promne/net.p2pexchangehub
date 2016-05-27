@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -16,12 +17,12 @@ import org.axonframework.eventsourcing.annotation.AggregateIdentifier;
 import george.test.exchange.core.domain.UserAccountRole;
 import george.test.exchange.core.domain.UserAccountState;
 import net.p2pexchangehub.core.api._domain.CurrencyAmount;
-import net.p2pexchangehub.core.api.user.MoneyForCashoutReservedEvent;
 import net.p2pexchangehub.core.api.user.UserAccountChargedFromOfferEvent;
 import net.p2pexchangehub.core.api.user.UserAccountCreatedEvent;
 import net.p2pexchangehub.core.api.user.UserAccountCreditedFromDeclinedOfferEvent;
 import net.p2pexchangehub.core.api.user.UserAccountDebitConfirmedEvent;
 import net.p2pexchangehub.core.api.user.UserAccountDebitDiscarderEvent;
+import net.p2pexchangehub.core.api.user.UserAccountDebitForExternalBankAccountReservedEvent;
 import net.p2pexchangehub.core.api.user.UserAccountDebitForOfferReservedEvent;
 import net.p2pexchangehub.core.api.user.UserAccountPasswordChangedEvent;
 import net.p2pexchangehub.core.api.user.UserAccountPaymentsCodeChangedEvent;
@@ -71,6 +72,10 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
     
     public Set<UserBankAccount> getBankAccounts() {
         return Collections.unmodifiableSet(new HashSet<>(bankAccounts.values()));
+    }
+
+    public Optional<UserBankAccount> getBankAccount(String id) {
+        return Optional.ofNullable(bankAccounts.get(id));
     }
     
     public String getPaymentsCode() {
@@ -281,30 +286,28 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
         if (amount == null) {
             throw new IllegalStateException("Can't discard debit of nonexisting transaction " + transactionId);
         }
-        apply(new UserAccountDebitDiscarderEvent(id, transactionId, amount));
+        CurrencyAmount newBalance = getCurrencyAccountBalance(amount).add(amount);
+        apply(new UserAccountDebitDiscarderEvent(id, transactionId, amount, newBalance));
     }
     
     @EventHandler
     private void handle(UserAccountDebitDiscarderEvent event) {
-        CurrencyAmount newAmount = getCurrencyAccountBalance(event.getAmount()).add(event.getAmount());
-        currencyAccounts.put(newAmount.getCurrencyCode(), newAmount);
+        currencyAccounts.put(event.getNewBalance().getCurrencyCode(), event.getNewBalance());
         currencyAccountsReservations.remove(event.getTransactionId());
     }
-    
-    
-    public void reserveMoneyForCashout(String bankAccountId, CurrencyAmount amount) {
+
+    public void reserveMoneyForExternalBankAccount(String transactionId, String bankAccountId, CurrencyAmount amount) {
         CurrencyAmount newBalance = getCurrencyAccountBalance(amount).subtract(amount);
-        if (newBalance.isNotNegative()) {
-            apply(new MoneyForCashoutReservedEvent(id, bankAccountId, amount, newBalance));
+        if (newBalance.isNotNegative() && bankAccounts.containsKey(bankAccountId)) {
+            apply(new UserAccountDebitForExternalBankAccountReservedEvent(id, transactionId, bankAccountId, amount, newBalance));
         }
     }
-    
+
     @EventHandler
-    private void handle(MoneyForCashoutReservedEvent event) {
-//        continue here, carry on with payment request on external gateway
+    private void handle(UserAccountDebitForExternalBankAccountReservedEvent event) {
+        currencyAccountsReservations.put(event.getTransactionId(), event.getAmount());
         currencyAccounts.put(event.getNewBalance().getCurrencyCode(), event.getNewBalance());
     }
-
 
 }
 

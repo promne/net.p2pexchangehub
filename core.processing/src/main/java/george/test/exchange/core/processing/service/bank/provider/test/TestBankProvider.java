@@ -94,7 +94,6 @@ public class TestBankProvider extends BankProviderBase<TestBankAccount, TestBank
         for (Transaction tr : listTransactions) {
             TestBankTransaction bankTr = new TestBankTransaction();
             bankTr.setAmount(tr.getAmount());
-            bankTr.setBankAccount(context.getBankAccount());
             bankTr.setDate(tr.getDate());
             bankTr.setTbDetail(tr.getDetail());
             bankTr.setTbId(tr.getId());

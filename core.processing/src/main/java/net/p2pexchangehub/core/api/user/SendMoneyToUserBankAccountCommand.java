@@ -1,9 +1,14 @@
 package net.p2pexchangehub.core.api.user;
 
+import java.util.UUID;
+
 import net.p2pexchangehub.core.api._domain.CurrencyAmount;
 
 public class SendMoneyToUserBankAccountCommand {
 
+    // to track this transaction
+    private final String transactionId = UUID.randomUUID().toString();
+    
     private final String userAccountId;
     
     private final String bankAccountId;
@@ -15,6 +20,10 @@ public class SendMoneyToUserBankAccountCommand {
         this.userAccountId = userAccountId;
         this.bankAccountId = bankAccountId;
         this.amount = amount;
+    }
+
+    public String getTransactionId() {
+        return transactionId;
     }
 
     public String getUserAccountId() {

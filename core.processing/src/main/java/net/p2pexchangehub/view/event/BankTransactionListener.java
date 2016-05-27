@@ -8,7 +8,7 @@ import org.axonframework.eventhandling.replay.ReplayAware;
 import george.test.exchange.core.domain.ExternalBankTransactionState;
 import net.p2pexchangehub.core.aggregate.value.TestBankTransactionData;
 import net.p2pexchangehub.core.api.external.bank.transaction.ExternalBankTransactionCreatedEvent;
-import net.p2pexchangehub.core.api.external.bank.transaction.ExternalBankTransactionStateChangedEvent;
+import net.p2pexchangehub.core.api.external.bank.transaction.ExternalBankTransactionMatchedWithUserAccountEvent;
 import net.p2pexchangehub.view.domain.BankAccount;
 import net.p2pexchangehub.view.domain.BankTransaction;
 import net.p2pexchangehub.view.repository.BankTransactionRepository;
@@ -30,7 +30,7 @@ public class BankTransactionListener implements ReplayAware {
         BankAccount bankAccount = new BankAccount();
         bankAccount.setId(event.getBankAccountId());
         bankTransaction.setBankAccount(bankAccount);
-        bankTransaction.setAmount(event.getAmount());
+        bankTransaction.setAmount(event.getAmount().getAmount());
         bankTransaction.setDate(event.getDate());
         bankTransaction.setFromAccount(event.getFromAccount());
         bankTransaction.setState(ExternalBankTransactionState.IMPORTED);
@@ -47,9 +47,9 @@ public class BankTransactionListener implements ReplayAware {
     }
 
     @EventHandler
-    public void transactionStateChanged(ExternalBankTransactionStateChangedEvent event) {
+    public void transactionMatchedWithUserAccount(ExternalBankTransactionMatchedWithUserAccountEvent event) {
         BankTransaction bankTransaction = repository.findOne(event.getTransactionId());
-        bankTransaction.setState(event.getNewState());
+        bankTransaction.setState(ExternalBankTransactionState.MATCHED);
         repository.save(bankTransaction);
     }
     

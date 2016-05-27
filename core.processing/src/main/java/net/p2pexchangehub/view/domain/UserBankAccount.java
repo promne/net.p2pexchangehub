@@ -3,10 +3,12 @@ package net.p2pexchangehub.view.domain;
 public class UserBankAccount {
 
     private String id;
+    public static final String PROPERTY_ID = "id";
 
     private String currency;
 
     private String accountNumber;
+    public static final String PROPERTY_ACCOUNT_NUMBER = "accountNumber";
 
     public UserBankAccount() {
         super();

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<uml:Model xmi:version="20131001" xmlns:xmi="http://www.omg.org/spec/XMI/20131001" xmlns:uml="http://www.eclipse.org/uml2/5.0.0/UML" xmi:id="_6OFUkCOGEeaeUdL8mUWNxQ" name="RootElement">
+  <packageImport xmi:type="uml:PackageImport" xmi:id="_bFBJ0COREeasyajE02gHog">
+    <importedPackage xmi:type="uml:Profile" href="pathmap://Papyrus_JAVA_PROFILES/java.profile.uml#_6TYLMN0yEd6P1qtlpBOZyg"/>
+  </packageImport>
+  <packagedElement xmi:type="uml:Model" xmi:id="_vf1BICOREeasyajE02gHog" name="java">
+    <packagedElement xmi:type="uml:Package" xmi:id="_vf1BISOREeasyajE02gHog" name="java">
+      <packagedElement xmi:type="uml:Package" xmi:id="_vf1oMCOREeasyajE02gHog" name="lang">
+        <packagedElement xmi:type="uml:Class" xmi:id="_vf1oMSOREeasyajE02gHog" name="String"/>
+        <packagedElement xmi:type="uml:Class" xmi:id="_bJp8wiOSEeasyajE02gHog" name="Throwable"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Package" xmi:id="_vf5SkCOREeasyajE02gHog" name="util">
+        <packagedElement xmi:type="uml:Class" xmi:id="_vf5SkSOREeasyajE02gHog" name="Set"/>
+        <packagedElement xmi:type="uml:Class" xmi:id="_vh1zUCOREeasyajE02gHog" name="Date"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Package" xmi:id="_kBKwASOSEeasyajE02gHog" name="math">
+        <packagedElement xmi:type="uml:Class" xmi:id="_kBKwAiOSEeasyajE02gHog" name="BigDecimal"/>
+      </packagedElement>
+    </packagedElement>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Model" xmi:id="_bJpVsCOSEeasyajE02gHog" name="datatype">
+    <packagedElement xmi:type="uml:Package" xmi:id="_bJpVsSOSEeasyajE02gHog" name="datatype">
+      <packagedElement xmi:type="uml:PrimitiveType" xmi:id="_bJpVsiOSEeasyajE02gHog" name="Boolean"/>
+    </packagedElement>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Package" xmi:id="_Cnh1UCOTEeasyajE02gHog" name="Package1">
+    <packagedElement xmi:type="uml:Interaction" xmi:id="_HPbNgCOTEeasyajE02gHog" name="Interaction1"/>
+  </packagedElement>
+</uml:Model>

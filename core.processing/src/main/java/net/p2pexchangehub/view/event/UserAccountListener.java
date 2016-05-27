@@ -10,6 +10,8 @@ import net.p2pexchangehub.core.api._domain.CurrencyAmount;
 import net.p2pexchangehub.core.api.user.UserAccountChargedFromOfferEvent;
 import net.p2pexchangehub.core.api.user.UserAccountCreatedEvent;
 import net.p2pexchangehub.core.api.user.UserAccountCreditedFromDeclinedOfferEvent;
+import net.p2pexchangehub.core.api.user.UserAccountDebitDiscarderEvent;
+import net.p2pexchangehub.core.api.user.UserAccountDebitForExternalBankAccountReservedEvent;
 import net.p2pexchangehub.core.api.user.UserAccountDebitForOfferReservedEvent;
 import net.p2pexchangehub.core.api.user.UserAccountPasswordChangedEvent;
 import net.p2pexchangehub.core.api.user.UserAccountPaymentsCodeChangedEvent;
@@ -103,6 +105,16 @@ public class UserAccountListener implements ReplayAware {
 
     @EventHandler
     public void handle(UserAccountChargedFromOfferEvent event) {
+        updateWalletBalance(event.getUserAccountId(), event.getNewBalance());
+    }
+
+    @EventHandler
+    public void handle(UserAccountDebitForExternalBankAccountReservedEvent event) {
+        updateWalletBalance(event.getUserAccountId(), event.getNewBalance());
+    }
+
+    @EventHandler
+    public void handle(UserAccountDebitDiscarderEvent event) {
         updateWalletBalance(event.getUserAccountId(), event.getNewBalance());
     }
     

@@ -147,9 +147,11 @@ public class UserAccountCommandHandler {
     
     @CommandHandler
     public void handleSendMoneyExternal(SendMoneyToUserBankAccountCommand command) {
+        //TODO handle precision
         UserAccount userAccount = repository.load(command.getUserAccountId());
-//        userAccount.reserveMoneyForOffer(offerId, amount);
+        userAccount.reserveMoneyForExternalBankAccount(command.getTransactionId(), command.getBankAccountId(), command.getAmount());
     }
+    
  
     public void sendMoneyExternal() {
 //        repository.load(command.getUserAccountId());

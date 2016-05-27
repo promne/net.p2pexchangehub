@@ -25,6 +25,7 @@ import george.test.exchange.core.domain.ExternalBankTransactionState;
 import net.p2pexchangehub.core.api.external.bank.RequestExternalBankSynchronizationCommand;
 import net.p2pexchangehub.core.api.external.bank.SetExternalBankAccountActiveCommand;
 import net.p2pexchangehub.core.api.external.bank.transaction.MatchIncomingExternalBankTransactionWithUserAccountCommand;
+import net.p2pexchangehub.core.api.external.bank.transaction.MatchOutgoingExternalBankTransactionWithRequestedCommand;
 import net.p2pexchangehub.view.domain.BankAccount;
 import net.p2pexchangehub.view.domain.BankTransaction;
 import net.p2pexchangehub.view.repository.UserAccountRepository;
@@ -123,15 +124,21 @@ public class BankAccountView extends VerticalLayout implements View {
             transactionsMenu.addItem("Refresh", c -> refreshAccounts());
             if (itemId!=null) {
                 BankTransaction bankTransaction = transactionsContainer.getItem(itemId).getBean();
-                if (bankTransaction.getState() == ExternalBankTransactionState.IMPORTED && bankTransaction.isIncoming()) {
-                    MenuItem matchingOfferMenu = transactionsMenu.addItem("Transfer to the user", null);
-                    
-                    userAccountView.findAll().forEach(userAccount -> {
-                        matchingOfferMenu.addItem(userAccount.getUsername(), c -> gateway
-                                .send(new MatchIncomingExternalBankTransactionWithUserAccountCommand(bankTransaction.getId(), userAccount.getId())));
-                    });
+                if (bankTransaction.getState() == ExternalBankTransactionState.IMPORTED) {
+                    transactionsMenu.addSeparator();
+                    if (bankTransaction.isIncoming()) {
+                        MenuItem matchingOfferMenu = transactionsMenu.addItem("Transfer to the user", null);
+                        
+                        userAccountView.findAll().forEach(userAccount -> {
+                            matchingOfferMenu.addItem(String.format("%s (%s)",userAccount.getUsername(), userAccount.getPaymentsCode()), c -> gateway
+                                    .send(new MatchIncomingExternalBankTransactionWithUserAccountCommand(bankTransaction.getId(), userAccount.getId())));
+                        });
+                    } else {
+                        transactionsMenu.addItem("Try to match with a user", c -> {
+                            gateway.send(new MatchOutgoingExternalBankTransactionWithRequestedCommand(bankTransaction.getId()));
+                        });
+                    }
                 }
-                
             }
         });
         

@@ -1,47 +1,42 @@
 package george.test.exchange.core.domain.entity;
 
-import javax.persistence.Entity;
-import javax.persistence.OneToOne;
+import java.math.BigDecimal;
 
-import george.test.exchange.core.domain.ExternalBankTransactionRequestState;
 import george.test.exchange.core.domain.entity.bank.ExternalBankTransaction;
 import net.p2pexchangehub.core.handler.external.bank.ExternalBankAccount;
 
-@Entity
-public class TransactionRequestExternal extends Transaction {
+public class TransactionRequestExternal {
 
+    private String id;
+    
+    private BigDecimal amount;
+    
     private ExternalBankAccount bankAccount;
 
     private String recipientAccountNumber;
     
     private String detailInfo;
     
-    private int failedAttemptsCount;
-    
-    private ExternalBankTransactionRequestState requestState;
-    public static final String REQUEST_STATE = "requestState";
-
-    @OneToOne
     private ExternalBankTransaction externalBankTransaction;    
     
     public TransactionRequestExternal() {
         super();
     }
 
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+    
     public ExternalBankAccount getBankAccount() {
         return bankAccount;
     }
 
     public void setBankAccount(ExternalBankAccount bankAccount) {
         this.bankAccount = bankAccount;
-    }
-
-    public ExternalBankTransactionRequestState getRequestState() {
-        return requestState;
-    }
-
-    public void setRequestState(ExternalBankTransactionRequestState state) {
-        this.requestState = state;
     }
 
     public String getRecipientAccountNumber() {
@@ -68,12 +63,13 @@ public class TransactionRequestExternal extends Transaction {
         this.externalBankTransaction = externalBankTransaction;
     }
 
-    public int getFailedAttemptsCount() {
-        return failedAttemptsCount;
+    public BigDecimal getAmount() {
+        return amount;
     }
 
-    public void setFailedAttemptsCount(int failedAttemptsCount) {
-        this.failedAttemptsCount = failedAttemptsCount;
+    public void setAmount(BigDecimal amount) {
+        this.amount = amount;
     }
+
     
 }

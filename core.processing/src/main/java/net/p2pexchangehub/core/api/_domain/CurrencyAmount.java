@@ -32,6 +32,10 @@ public class CurrencyAmount {
         return BigDecimal.ZERO.compareTo(amount)<=0;
     }
     
+    public CurrencyAmount negate() {
+        return new CurrencyAmount(currencyCode, amount.negate());
+    }
+    
     public String getCurrencyCode() {
         return currencyCode;
     }
@@ -40,5 +44,35 @@ public class CurrencyAmount {
         return amount;
     }
 
-    
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((amount == null) ? 0 : ((Double)amount.doubleValue()).hashCode());
+        result = prime * result + ((currencyCode == null) ? 0 : currencyCode.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        CurrencyAmount other = (CurrencyAmount) obj;
+        if (amount == null) {
+            if (other.amount != null)
+                return false;
+        } else if (amount.compareTo(other.amount)!=0)
+            return false;
+        if (currencyCode == null) {
+            if (other.currencyCode != null)
+                return false;
+        } else if (!currencyCode.equals(other.currencyCode))
+            return false;
+        return true;
+    }
+
 }

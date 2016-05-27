@@ -1,9 +1,9 @@
 package net.p2pexchangehub.core.api.external.bank.transaction;
 
-import java.math.BigDecimal;
 import java.util.Date;
 
 import net.p2pexchangehub.core.aggregate.value.BankSpecificTransactionData;
+import net.p2pexchangehub.core.api._domain.CurrencyAmount;
 
 public class ExternalBankTransactionCreatedEvent {
 
@@ -11,7 +11,7 @@ public class ExternalBankTransactionCreatedEvent {
 
     private final String bankAccountId;
     
-    private final BigDecimal amount;
+    private final CurrencyAmount amount;
 
     private final String fromAccount;
     
@@ -21,7 +21,7 @@ public class ExternalBankTransactionCreatedEvent {
 
     private final BankSpecificTransactionData bankSpecificTransactionData;
 
-    public ExternalBankTransactionCreatedEvent(String id, String bankAccountId, BigDecimal amount, Date date, String fromAccount, String referenceInfo, BankSpecificTransactionData bankSpecificTransactionData) {
+    public ExternalBankTransactionCreatedEvent(String id, String bankAccountId, CurrencyAmount amount, Date date, String fromAccount, String referenceInfo, BankSpecificTransactionData bankSpecificTransactionData) {
         super();
         this.id = id;
         this.bankAccountId = bankAccountId;
@@ -40,7 +40,7 @@ public class ExternalBankTransactionCreatedEvent {
         return bankAccountId;
     }
 
-    public BigDecimal getAmount() {
+    public CurrencyAmount getAmount() {
         return amount;
     }
 

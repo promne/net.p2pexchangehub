@@ -20,6 +20,7 @@ import george.test.exchange.core.processing.service.bank.BankProviderException;
 import george.test.exchange.core.processing.service.bank.provider.test.TestBankTransaction;
 import net.p2pexchangehub.core.aggregate.value.BankSpecificTransactionData;
 import net.p2pexchangehub.core.aggregate.value.TestBankTransactionData;
+import net.p2pexchangehub.core.api._domain.CurrencyAmount;
 import net.p2pexchangehub.core.api.external.bank.ExternalBankAccountSynchronizationRequestedEvent;
 import net.p2pexchangehub.core.api.external.bank.SetExternalBankAccountSynchronizedCommand;
 import net.p2pexchangehub.core.api.external.bank.transaction.CreateExternalBankTransactionCommand;
@@ -73,7 +74,7 @@ public class ExternalBankTransactionSynchronizer extends AbstractIgnoreReplayEve
                         throw new IllegalStateException("Unable to process transaction of type " + tr.getClass());
                     }
                     
-                    gateway.send(new CreateExternalBankTransactionCommand(event.getBankAccountId(), tr.getAmount(), tr.getDate(), tr.getOtherAccount(), referenceInfo, bankSpecificTransactionData));
+                    gateway.send(new CreateExternalBankTransactionCommand(event.getBankAccountId(), new CurrencyAmount(bankAccount.getCurrency(), tr.getAmount()), tr.getDate(), tr.getOtherAccount(), referenceInfo, bankSpecificTransactionData));
                 }
             }
             gateway.send(new SetExternalBankAccountSynchronizedCommand(event.getBankAccountId(), checkTo, balance));
@@ -81,5 +82,5 @@ public class ExternalBankTransactionSynchronizer extends AbstractIgnoreReplayEve
             //TODO send info about error
         }        
     }
-
+    
 }

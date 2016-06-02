@@ -3,6 +3,7 @@ package net.p2pexchangehub.core.handler.offer;
 import java.math.BigDecimal;
 import java.util.Arrays;
 
+import org.axonframework.domain.MetaData;
 import org.axonframework.eventhandling.annotation.EventHandler;
 import org.axonframework.eventsourcing.annotation.AbstractAnnotatedAggregateRoot;
 import org.axonframework.eventsourcing.annotation.AggregateIdentifier;
@@ -95,14 +96,14 @@ public class ExchangeOffer extends AbstractAnnotatedAggregateRoot<String> {
     }
 
     public ExchangeOffer(String offerId, String userAccountId, String currencyOffered, BigDecimal amountOfferedMin, BigDecimal amountOfferedMax, String currencyRequested,
-            BigDecimal requestedExchangeRate) {
+            BigDecimal requestedExchangeRate, MetaData metadata) {
         if (amountOfferedMin.compareTo(amountOfferedMax)>0) {
             throw new IllegalArgumentException("Minimal amount can't be bigger than maximal amount");
         }
         if (currencyOffered.equalsIgnoreCase(currencyRequested)) {
             throw new IllegalArgumentException("Can't request the same currency that is offered");            
         }
-        apply(new OfferCreatedEvent(offerId, userAccountId, currencyOffered, amountOfferedMin, amountOfferedMax, currencyRequested, requestedExchangeRate));
+        apply(new OfferCreatedEvent(offerId, userAccountId, currencyOffered, amountOfferedMin, amountOfferedMax, currencyRequested, requestedExchangeRate), metadata);
     }
 
     @EventHandler
@@ -117,7 +118,7 @@ public class ExchangeOffer extends AbstractAnnotatedAggregateRoot<String> {
         this.state = OfferState.UNPAIRED;
     }
     
-    public void matchWithOffer(String matchedOfferId, BigDecimal amountOffered, BigDecimal amountRequested) {
+    public void matchWithOffer(String matchedOfferId, BigDecimal amountOffered, BigDecimal amountRequested, MetaData metadata) {
         if (this.state != OfferState.UNPAIRED) {
             throw new IllegalStateException(String.format("Unable to match offer %s in state %s", this.id, this.state));
         }
@@ -128,7 +129,7 @@ public class ExchangeOffer extends AbstractAnnotatedAggregateRoot<String> {
             throw new IllegalStateException(String.format("Reqeusted exchange of %s for %s doesn't match exchange rate %s of offer %s", amountOffered, amountRequested, this.amountRequestedExchangeRate, this.id));            
         }
         
-        apply(new OfferMatchedEvent(this.id, matchedOfferId, amountOffered, amountRequested));
+        apply(new OfferMatchedEvent(this.id, matchedOfferId, amountOffered, amountRequested), metadata);
     }
     
     @EventHandler
@@ -139,11 +140,12 @@ public class ExchangeOffer extends AbstractAnnotatedAggregateRoot<String> {
         this.state = OfferState.WAITING_FOR_PAYMENT;
     }
 
-    public void credit(String transactionId, String userAccountId, CurrencyAmount amount) {
+    public void credit(String transactionId, String userAccountId, CurrencyAmount amount, MetaData metadata) {
         if (state != OfferState.WAITING_FOR_PAYMENT || !amount.getCurrencyCode().equals(currencyOffered) || amount.getAmount().compareTo(amountOffered)!=0) {
-            apply(new OfferCreditRejectedEvent(id, transactionId, userAccountId, amount));        
-        }        
-        apply(new OfferCreditedEvent(id, transactionId, userAccountId, amount));        
+            apply(new OfferCreditRejectedEvent(id, transactionId, userAccountId, amount), metadata);        
+        } else {        
+            apply(new OfferCreditedEvent(id, transactionId, userAccountId, amount), metadata);
+        }
     }
     
     @EventHandler
@@ -156,11 +158,11 @@ public class ExchangeOffer extends AbstractAnnotatedAggregateRoot<String> {
         //nothing, keeps state to waiting for payment
     }
     
-    public void reserveCreditDecline(String transactionId) {
+    public void reserveCreditDecline(String transactionId, MetaData metadata) {
         if (state != OfferState.PAYED) {
             throw new IllegalStateException(String.format("Unable to reserve credit decline for offer %s with state %s", id, state));
         }        
-        apply(new OfferCreditDeclineReservedEvent(id, transactionId, userAccountId));        
+        apply(new OfferCreditDeclineReservedEvent(id, transactionId, userAccountId), metadata);        
     }
     
     @EventHandler
@@ -168,11 +170,11 @@ public class ExchangeOffer extends AbstractAnnotatedAggregateRoot<String> {
         this.state = OfferState.CREDIT_DECLINE_REQUESTED;
     }
     
-    public void confirmCreditDecline(String transactionId) {
+    public void confirmCreditDecline(String transactionId, MetaData metadata) {
         if (state != OfferState.CREDIT_DECLINE_REQUESTED) {
             throw new IllegalStateException(String.format("Unable to confirm charge for offer %s with state %s", id, state));
         }        
-        apply(new OfferCreditDeclineConfirmedEvent(id, transactionId, userAccountId));
+        apply(new OfferCreditDeclineConfirmedEvent(id, transactionId, userAccountId), metadata);
     }
     
     @EventHandler
@@ -180,8 +182,8 @@ public class ExchangeOffer extends AbstractAnnotatedAggregateRoot<String> {
         this.state = OfferState.WAITING_FOR_PAYMENT;
     }
 
-    public void completeExchange() {
-        apply(new OfferExchangeCompletedEvent(id));
+    public void completeExchange(MetaData metadata) {
+        apply(new OfferExchangeCompletedEvent(id), metadata);
     }
 
     @EventHandler
@@ -189,11 +191,11 @@ public class ExchangeOffer extends AbstractAnnotatedAggregateRoot<String> {
         this.state = OfferState.EXCHANGE_COMPLETE;
     }
     
-    public void requestDebit() {
+    public void requestDebit(MetaData metadata) {
         if (state != OfferState.EXCHANGE_COMPLETE) {
             throw new IllegalStateException(String.format("Unable to accept request payment for offer %s with state %s", id, state));
         }        
-        apply(new OfferDebitRequestedEvent(this.id));
+        apply(new OfferDebitRequestedEvent(this.id), metadata);
     }
 
     @EventHandler
@@ -201,11 +203,11 @@ public class ExchangeOffer extends AbstractAnnotatedAggregateRoot<String> {
         this.state = OfferState.DEBIT_REQUESTED;
     }
 
-    public void confirmDebit() {
+    public void confirmDebit(MetaData metadata) {
         if (state != OfferState.DEBIT_REQUESTED) {
             throw new IllegalStateException(String.format("Unable to accept request payment for offer %s with state %s", id, state));
         }        
-        apply(new OfferDebitConfirmedEvent(this.id));
+        apply(new OfferDebitConfirmedEvent(this.id), metadata);
     }
 
     @EventHandler
@@ -213,11 +215,11 @@ public class ExchangeOffer extends AbstractAnnotatedAggregateRoot<String> {
         this.state = OfferState.CLOSED;
     }
     
-    public void cancel() {
+    public void cancel(MetaData metadata) {
         if (!Arrays.asList(OfferState.UNPAIRED).contains(state)) {
             throw new IllegalStateException(String.format("Unable to cancel offer %s with state %s", id, state));            
         }
-        apply(new OfferCanceledEvent(id));
+        apply(new OfferCanceledEvent(id), metadata);
     }
 
     @EventHandler

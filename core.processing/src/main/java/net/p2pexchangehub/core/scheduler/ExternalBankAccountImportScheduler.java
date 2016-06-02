@@ -71,13 +71,13 @@ public class ExternalBankAccountImportScheduler {
         bankAccountsRepository.findAll().stream().filter(BankAccount::isActive).forEach(bankAccount -> {
             int scrapeInterval = configurationView.getValueInt(CONFIG_BANK_IMPORT_INTERVAL_PREFIX + "." + bankAccount.getBankType(), defaultInterval);
 
-            boolean doSynchonization = true;
+            boolean doSynchonization = false;
             
 //            boolean doSynchonization = offerView.findByState(OfferState.WAITING_FOR_PAYMENT).stream().anyMatch(offer -> bankAccount.getCurrency().equals(offer.getIncomingPaymentBankAccountId()));
 //            doSynchonization = doSynchonization || offerView.findByState(OfferState.SEND_MONEY_REQUESTED).stream().anyMatch(offer -> bankAccount.getId().equals(offer.getOutgoingPaymentBankAccountId()));
 
             //TODO create fitting repository method
-            
+            doSynchonization = doSynchonization || bankAccount.isSynchronizationEnabled();
             doSynchonization = doSynchonization && (bankAccount.getLastCheck()==null || Instant.now().minusMillis(scrapeInterval).isAfter(bankAccount.getLastCheck().toInstant()));
             
             if (doSynchonization) {

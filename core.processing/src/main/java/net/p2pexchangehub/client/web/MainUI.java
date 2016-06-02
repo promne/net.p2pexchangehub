@@ -3,24 +3,45 @@ package net.p2pexchangehub.client.web;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Widgetset;
 import com.vaadin.cdi.CDIUI;
-import com.vaadin.cdi.CDIViewProvider;
 import com.vaadin.cdi.URLMapping;
 import com.vaadin.navigator.Navigator;
+import com.vaadin.navigator.View;
+import com.vaadin.server.Page;
+import com.vaadin.server.Resource;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.ui.MenuBar;
+import com.vaadin.ui.MenuBar.MenuItem;
+import com.vaadin.ui.Notification;
+import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
+
+import java.util.Optional;
 
 import javax.inject.Inject;
 
 import org.axonframework.eventhandling.EventBus;
 import org.axonframework.eventhandling.replay.ReplayingCluster;
+import org.vaadin.viritin.fields.MPasswordField;
+import org.vaadin.viritin.fields.MTextField;
 
+import de.steinwedel.messagebox.ButtonOption;
 import de.steinwedel.messagebox.MessageBox;
+import george.test.exchange.core.domain.UserAccountRole;
+import george.test.exchange.core.processing.service.AuthenticationService;
+import net.p2pexchangehub.client.web.helpdesk.BankAccountView;
+import net.p2pexchangehub.client.web.helpdesk.ConfigurationView;
+import net.p2pexchangehub.client.web.helpdesk.NotificationTemplateView;
+import net.p2pexchangehub.client.web.helpdesk.OfferView;
+import net.p2pexchangehub.client.web.helpdesk.SessionView;
+import net.p2pexchangehub.client.web.helpdesk.UserAccountView;
+import net.p2pexchangehub.client.web.security.UserIdentity;
+import net.p2pexchangehub.client.web.tools.CDIViewProvider;
+import net.p2pexchangehub.view.domain.UserAccount;
 
 @CDIUI("")
-@URLMapping("helpdesk/*")
+@URLMapping("client/*")
 @Theme(value = "mytheme")
 @Widgetset("george.test.exchange.client.MyAppWidgetset")
 public class MainUI extends UI {
@@ -34,29 +55,77 @@ public class MainUI extends UI {
     @Inject
     private EventBus eventBus;
     
-    
+    @Inject
+    private UserIdentity userIdentity;
+
+    @Inject
+    private AuthenticationService authenticationService;
+
     @Override
     protected void init(VaadinRequest request) {
+        if (userIdentity.isLoggeedIn()) {
+            loadProtectedResources();
+        } else {
+            MTextField usernameField = new MTextField("Username");
+            usernameField.setMaxLength(50);
+
+            MPasswordField passwordField = new MPasswordField("Password");
+            passwordField.setMaxLength(50);
+            
+            final MessageBox[] messageBox = new MessageBox[1];
+            messageBox[0] = MessageBox
+            .create()
+            .withCaption("Login")
+            .withMessage(new VerticalLayout(usernameField, passwordField))
+            .withOkButton(() -> {
+                Optional<UserAccount> user = authenticationService.authenticate(usernameField.getValue(), passwordField.getValue(), null);
+                if (user.isPresent()) {
+                    userIdentity.setUserAccountId(user.get().getId());
+                    loadProtectedResources();
+                    messageBox[0].close();
+                } else {
+                    passwordField.clear();
+                    Notification.show("Username and password doesn't match", Type.ERROR_MESSAGE);
+                }
+            }, ButtonOption.closeOnClick(false));
+            messageBox[0].open();                                
+            
+        }
+    }
+    
+    protected void loadProtectedResources() {
         MenuBar menuBar = new MenuBar();
         
-        menuBar.addItem("Accounts", e -> getUI().getNavigator().navigateTo(BankAccountView.VIEW_NAME));
-        menuBar.addItem("Offers", e -> getUI().getNavigator().navigateTo(OfferView.VIEW_NAME));
-        menuBar.addItem("Users", e -> getUI().getNavigator().navigateTo(UserAccountView.VIEW_NAME));
-        menuBar.addItem("Configuration", e -> getUI().getNavigator().navigateTo(ConfigurationView.VIEW_NAME));
-        menuBar.addItem("Sessions", e -> getUI().getNavigator().navigateTo(SessionView.VIEW_NAME));
-        menuBar.addItem("Rebuild view", e -> {
-            MessageBox.create()
+        addTopNavigation(menuBar, "Dashboard", ThemeResources.HOME, MyDashboardView.class);
+        addTopNavigation(menuBar, "Bank accounts", BankAccountView.class);
+        addTopNavigation(menuBar, "Offers", OfferView.class);
+        addTopNavigation(menuBar, "Users", UserAccountView.class);
+        addTopNavigation(menuBar, "Configuration", ConfigurationView.class);
+        addTopNavigation(menuBar, "Notifications", NotificationTemplateView.class);
+        addTopNavigation(menuBar, "Sessions", SessionView.class);
+
+        if (userIdentity.hasRole(UserAccountRole.ADMIN)) {
+            menuBar.addItem("Rebuild view", e -> {
+                MessageBox.create()
                 .withCaption("Rebuild view")
                 .withMessage("Do you really want to trigger view rebuild?")
                 .withOkButton(() -> {
                     eventBus.toString(); //just to trigger axon autoconfigure if it's a first time
+                    //TODO: split clusters based on their function to avoid replaying commands generating ones.
                     cluster.startReplay();
                 })
                 .withCancelButton()
                 .open();
+            });            
+        }
+        
+        menuBar.addItem("Logout", ThemeResources.SIGN_OUT, e -> {
+            userIdentity.logout();
+            UI.getCurrent().setContent(null);
+            Page.getCurrent().reload();
         });
         
-        
+                
         VerticalLayout mainLayout = new VerticalLayout();
         mainLayout.setSizeFull();
         mainLayout.addComponent(menuBar);
@@ -70,7 +139,21 @@ public class MainUI extends UI {
         
         Navigator navigator = new Navigator(this, contentPanel);
         navigator.addProvider(viewProvider);
-        navigator.navigateTo(BankAccountView.VIEW_NAME);        
+        navigator.navigateTo(MyDashboardView.VIEW_NAME);
     }
 
+    
+    protected MenuItem addTopNavigation(MenuBar menuBar, String caption, Resource icon, Class<? extends View> viewClass) {
+        MenuItem result = null;
+        if (viewProvider.isUserHavingAccessToView(viewClass)) {
+            String viewName = viewProvider.getViewNameFromAnnotation(viewClass);
+            result = menuBar.addItem(caption, icon, e -> getUI().getNavigator().navigateTo(viewName));
+        }
+        return result;
+        
+    }
+    
+    protected MenuItem addTopNavigation(MenuBar menuBar, String caption, Class<? extends View> viewClass) {
+        return addTopNavigation(menuBar, caption, null, viewClass);
+    }
 }

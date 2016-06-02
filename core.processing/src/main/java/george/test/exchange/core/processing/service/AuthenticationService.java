@@ -17,7 +17,7 @@ public class AuthenticationService {
     public Optional<UserAccount> authenticate(String username, String password, Object metadata) {
         //FIXME: turn into call to aggregate!! With additional info like ip etc.
         Optional<UserAccount> userAccount = userAccountRepository.findOneByUsername(username);
-        if (userAccount.isPresent()) {
+        if (userAccount.isPresent() && userAccount.get().isEnabled()) {
             if (BCrypt.checkpw(password, userAccount.get().getPasswordHash())) {
                 return userAccount;
             }            

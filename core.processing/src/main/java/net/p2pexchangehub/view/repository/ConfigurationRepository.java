@@ -35,6 +35,10 @@ public class ConfigurationRepository {
         return findOne==null ? null : findOne.get(ConfigurationItem.PROPERTY_VALUE).toString();
     }
 
+    public boolean exists(Object key) {
+        return getCollectionInternal().findOne(key) != null;
+    }
+    
     private DBCollection getCollectionInternal() {
         return mongoTemplate.getCollection(mongoTemplate.getCollectionName(ConfigurationItem.class));
     }

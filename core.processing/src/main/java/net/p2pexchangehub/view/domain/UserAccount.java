@@ -1,11 +1,14 @@
 package net.p2pexchangehub.view.domain;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.data.annotation.Id;
 
 import george.test.exchange.core.domain.UserAccountRole;
+import net.p2pexchangehub.view.domain.UserAccountContact.Type;
 
 public class UserAccount {
 
@@ -98,6 +101,18 @@ public class UserAccount {
 
     public Set<UserAccountContact> getContacts() {
         return contacts;
+    }
+
+    public Set<UserAccountContact> getContacts(Type type) {
+        return contacts.stream().filter(c -> c.getType() == type).collect(Collectors.toSet());
+    }
+
+    public Optional<UserAccountContact> getContact(String id) {
+        return contacts.stream().filter(c -> c.getId().equals(id)).findFirst();        
+    }
+    
+    public Optional<UserAccountContact> getDefaultContact(Type type) {
+        return contacts.stream().filter(c -> c.getType() == type).findFirst();
     }
 
     public void setContacts(Set<UserAccountContact> contacts) {

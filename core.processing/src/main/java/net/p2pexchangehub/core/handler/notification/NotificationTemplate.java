@@ -1,5 +1,6 @@
 package net.p2pexchangehub.core.handler.notification;
 
+import org.axonframework.domain.MetaData;
 import org.axonframework.eventhandling.annotation.EventHandler;
 import org.axonframework.eventsourcing.annotation.AbstractAnnotatedAggregateRoot;
 import org.axonframework.eventsourcing.annotation.AggregateIdentifier;
@@ -21,9 +22,9 @@ public class NotificationTemplate extends AbstractAnnotatedAggregateRoot<String>
         super();
     }
 
-    public NotificationTemplate(String id) {
+    public NotificationTemplate(String id, MetaData metadata) {
         super();
-        apply(new NotificationTemplateCreatedEvent(id));
+        apply(new NotificationTemplateCreatedEvent(id), metadata);
     }
 
     @EventHandler
@@ -31,13 +32,13 @@ public class NotificationTemplate extends AbstractAnnotatedAggregateRoot<String>
         this.id = event.getId();
     }
     
-    public void updateEmailTemplateText(String languageCode, String subject, String text) {
-        apply(new EmailTemplateTextUpdatedEvent(id, languageCode, subject, text));
+    public void updateEmailTemplateText(String languageCode, String subject, String text, MetaData metadata) {
+        apply(new EmailTemplateTextUpdatedEvent(id, languageCode, subject, text), metadata);
     }
     
     @EventHandler
     private void handleEmailTemplateUpdated(EmailTemplateTextUpdatedEvent event) {
         //do nothing
     }
-    
+        
 }

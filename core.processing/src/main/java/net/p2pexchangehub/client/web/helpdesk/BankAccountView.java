@@ -1,4 +1,4 @@
-package net.p2pexchangehub.client.web;
+package net.p2pexchangehub.client.web.helpdesk;
 
 import com.vaadin.addon.contextmenu.GridContextMenu;
 import com.vaadin.addon.contextmenu.MenuItem;
@@ -14,6 +14,7 @@ import com.vaadin.ui.VerticalSplitPanel;
 import java.util.ArrayList;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -22,8 +23,10 @@ import org.tylproject.vaadin.addon.MongoContainer;
 import org.tylproject.vaadin.addon.MongoContainer.Builder;
 
 import george.test.exchange.core.domain.ExternalBankTransactionState;
+import net.p2pexchangehub.client.web.ThemeStyles;
 import net.p2pexchangehub.core.api.external.bank.RequestExternalBankSynchronizationCommand;
 import net.p2pexchangehub.core.api.external.bank.SetExternalBankAccountActiveCommand;
+import net.p2pexchangehub.core.api.external.bank.SetExternalBankAccountSynchronizationEnabledCommand;
 import net.p2pexchangehub.core.api.external.bank.transaction.MatchIncomingExternalBankTransactionWithUserAccountCommand;
 import net.p2pexchangehub.core.api.external.bank.transaction.MatchOutgoingExternalBankTransactionWithRequestedCommand;
 import net.p2pexchangehub.view.domain.BankAccount;
@@ -31,6 +34,7 @@ import net.p2pexchangehub.view.domain.BankTransaction;
 import net.p2pexchangehub.view.repository.UserAccountRepository;
 
 @CDIView(BankAccountView.VIEW_NAME)
+@RolesAllowed("admin")
 public class BankAccountView extends VerticalLayout implements View {
     
     public static final String VIEW_NAME = "BankAccountView";
@@ -90,6 +94,12 @@ public class BankAccountView extends VerticalLayout implements View {
                 });
                 activeItem.setCheckable(true);
                 activeItem.setChecked(account.isActive());                
+
+                MenuItem synchronizationItem = accountMenu.addItem("Synchronization enabled", c -> {
+                    gateway.send(new SetExternalBankAccountSynchronizationEnabledCommand(account.getId(), c.isChecked()));
+                });
+                synchronizationItem.setCheckable(true);
+                synchronizationItem.setChecked(account.isSynchronizationEnabled());                
 
                 accountMenu.addItem("Synchronize", c -> gateway.send(new RequestExternalBankSynchronizationCommand(account.getId())));
             }

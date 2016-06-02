@@ -1,4 +1,4 @@
-package net.p2pexchangehub.client.web;
+package net.p2pexchangehub.client.web.helpdesk;
 
 import com.vaadin.addon.contextmenu.GridContextMenu;
 import com.vaadin.cdi.CDIView;
@@ -23,6 +23,7 @@ import java.math.BigDecimal;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -34,13 +35,10 @@ import george.test.exchange.core.domain.UserAccountRole;
 import net.p2pexchangehub.client.web.components.OfferGrid;
 import net.p2pexchangehub.client.web.components.UserAccountGrid;
 import net.p2pexchangehub.core.api._domain.CurrencyAmount;
-import net.p2pexchangehub.core.api.offer.RequestOfferCreditDeclineCommand;
-import net.p2pexchangehub.core.api.user.CreditOfferFromUserAccountCommand;
 import net.p2pexchangehub.core.api.user.SendMoneyToUserBankAccountCommand;
 import net.p2pexchangehub.core.api.user.contact.AddEmailContactCommand;
 import net.p2pexchangehub.core.api.user.contact.AddPhoneNumberContactCommand;
 import net.p2pexchangehub.core.api.user.contact.RequestContactValidationCodeCommand;
-import net.p2pexchangehub.core.handler.offer.OfferState;
 import net.p2pexchangehub.view.domain.Offer;
 import net.p2pexchangehub.view.domain.UserAccount;
 import net.p2pexchangehub.view.domain.UserAccountContact;
@@ -49,6 +47,7 @@ import net.p2pexchangehub.view.domain.UserBankAccount;
 import net.p2pexchangehub.view.repository.OfferRepository;
 
 @CDIView(UserAccountView.VIEW_NAME)
+@RolesAllowed("admin")
 public class UserAccountView extends VerticalLayout implements View {
 
     public static final String VIEW_NAME = "UserAccountView";
@@ -101,22 +100,6 @@ public class UserAccountView extends VerticalLayout implements View {
             
             userDetailTabSheet.setVisible(userAccount!=null);
         });
-        
-        
-        GridContextMenu offerContextMenu = offerGrid.getContextMenu();
-        offerContextMenu.addGridBodyContextMenuListener(e -> {
-            Offer offer = offerGrid.getEntity(e.getItemId());
-            if (offer != null) {
-                if (offer.getState().equals(OfferState.WAITING_FOR_PAYMENT) 
-                        && userAccountGrid.getSelectedEntity().getWallet().stream().anyMatch(w -> w.getCurrency().equals(offer.getCurrencyOffered()) && w.getAmount().compareTo(offer.getAmountOffered())>=0)) {
-                    offerContextMenu.addItem("Charge money", c -> gateway.send(new CreditOfferFromUserAccountCommand(offer.getId())));
-                }
-                if (offer.getState().equals(OfferState.PAYED)) {
-                    offerContextMenu.addItem("Discharge money", c -> gateway.send(new RequestOfferCreditDeclineCommand(offer.getId())));
-                }                
-            }
-        });
-     
         
         
     }
@@ -195,8 +178,8 @@ public class UserAccountView extends VerticalLayout implements View {
         
         
         
-        offerGrid.getMongoContainerDataSource().removeAllContainerFilters(); //TODO better to focus on single filter
-        offerGrid.getMongoContainerDataSource().addContainerFilter(new Compare.Equal(Offer.PROPERTY_USER_ACCOUNT_ID, userAccount.getId()));
+        offerGrid.getGeneratedPropertyContainer().removeAllContainerFilters(); //TODO better to focus on single filter
+        offerGrid.getGeneratedPropertyContainer().addContainerFilter(new Compare.Equal(Offer.PROPERTY_USER_ACCOUNT_ID, userAccount.getId()));
         
         userWalletContainer.removeAllItems();
         userWalletContainer.addAll(userAccount.getWallet());

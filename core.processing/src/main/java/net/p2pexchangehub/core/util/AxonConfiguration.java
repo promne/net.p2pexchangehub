@@ -4,13 +4,19 @@ import com.mongodb.MongoClient;
 
 import java.net.UnknownHostException;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.Produces;
 import javax.inject.Singleton;
 
 import org.axonframework.commandhandling.CommandBus;
+import org.axonframework.commandhandling.CommandDispatchInterceptor;
 import org.axonframework.commandhandling.SimpleCommandBus;
+import org.axonframework.commandhandling.gateway.CommandGateway;
+import org.axonframework.commandhandling.gateway.DefaultCommandGateway;
 import org.axonframework.eventhandling.Cluster;
 import org.axonframework.eventhandling.ClusteringEventBus;
 import org.axonframework.eventhandling.DefaultClusterSelector;
@@ -107,4 +113,9 @@ public class AxonConfiguration {
         return trigger;
     }
 
+    @Produces
+    public CommandGateway commandGateway(CommandBus commandBus, Instance<CommandDispatchInterceptor> commandDispatchInterceptors) {
+        CommandDispatchInterceptor[] interceptorsArray = StreamSupport.stream(commandDispatchInterceptors.spliterator(), false).collect(Collectors.toList()).toArray(new CommandDispatchInterceptor[]{});
+        return new DefaultCommandGateway(commandBus, interceptorsArray);
+    }
 }

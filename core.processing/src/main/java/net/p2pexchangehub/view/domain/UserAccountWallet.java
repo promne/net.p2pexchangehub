@@ -7,6 +7,7 @@ import net.p2pexchangehub.core.api._domain.CurrencyAmount;
 public class UserAccountWallet {
 
     private String currency;
+    public static final String PROPERTY_CURRENCY = "currency";
     
     private BigDecimal amount;
 

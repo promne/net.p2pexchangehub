@@ -1,5 +1,6 @@
 package net.p2pexchangehub.core.handler.configuration;
 
+import org.axonframework.domain.MetaData;
 import org.axonframework.eventhandling.annotation.EventHandler;
 import org.axonframework.eventsourcing.annotation.AbstractAnnotatedAggregateRoot;
 import org.axonframework.eventsourcing.annotation.AggregateIdentifier;
@@ -26,10 +27,10 @@ public class ConfigurationItem extends AbstractAnnotatedAggregateRoot<String> {
         return id;
     }
 
-    public ConfigurationItem(String id, String value) {
+    public ConfigurationItem(String id, String value, MetaData metadata) {
         super();
-        apply(new ConfigurationItemCreatedEvent(id));
-        apply(new ConfigurationItemValueChangedEvent(id, value));
+        apply(new ConfigurationItemCreatedEvent(id), metadata);
+        apply(new ConfigurationItemValueChangedEvent(id, value), metadata);
     }
 
     @EventHandler
@@ -37,8 +38,8 @@ public class ConfigurationItem extends AbstractAnnotatedAggregateRoot<String> {
         this.id = event.getId();
     }
     
-    public void setValue(String value) {
-        apply(new ConfigurationItemValueChangedEvent(id, value));
+    public void setValue(String value, MetaData metadata) {
+        apply(new ConfigurationItemValueChangedEvent(id, value), metadata);
     }
     
     @EventHandler

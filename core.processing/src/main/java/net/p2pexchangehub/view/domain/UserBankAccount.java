@@ -6,6 +6,7 @@ public class UserBankAccount {
     public static final String PROPERTY_ID = "id";
 
     private String currency;
+    public static final String PROPERTY_CURRENCY = "currency";
 
     private String accountNumber;
     public static final String PROPERTY_ACCOUNT_NUMBER = "accountNumber";

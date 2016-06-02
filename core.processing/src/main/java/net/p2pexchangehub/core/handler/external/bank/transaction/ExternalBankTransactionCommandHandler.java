@@ -3,6 +3,7 @@ package net.p2pexchangehub.core.handler.external.bank.transaction;
 import javax.inject.Inject;
 
 import org.axonframework.commandhandling.annotation.CommandHandler;
+import org.axonframework.domain.MetaData;
 import org.axonframework.repository.Repository;
 
 import net.p2pexchangehub.core.api.external.bank.transaction.CreateExternalBankTransactionCommand;
@@ -29,27 +30,27 @@ public class ExternalBankTransactionCommandHandler {
     private BankTransactionRepository bankTransactionRepository;
     
     @CommandHandler
-    public void createExternalTransaction(CreateExternalBankTransactionCommand command) {
+    public void createExternalTransaction(CreateExternalBankTransactionCommand command, MetaData metadata) {
         //accept any command and avoid duplicates using predetermined transaction id
         String uniqueID = String.format("%s-%s-%s%s", command.getBankAccountId(), command.getDate().getTime(), command.getAmount(), command.getBankSpecificTransactionData().getHash());
         if (!bankTransactionRepository.exists(uniqueID)) {
-            ExternalBankTransaction ntr = new ExternalBankTransaction(uniqueID, command.getBankAccountId(), command.getAmount(), command.getDate(), command.getFromAccount(), command.getReferenceInfo(), command.getBankSpecificTransactionData());
+            ExternalBankTransaction ntr = new ExternalBankTransaction(uniqueID, command.getBankAccountId(), command.getAmount(), command.getDate(), command.getFromAccount(), command.getReferenceInfo(), command.getBankSpecificTransactionData(), metadata);
             aggregateRepositoryTransactions.add(ntr);            
         }
     }
     
     @CommandHandler
-    public void handleMatchTransaction(MatchIncomingExternalBankTransactionWithUserAccountCommand command) {
+    public void handleMatchTransaction(MatchIncomingExternalBankTransactionWithUserAccountCommand command, MetaData metadata) {
         ExternalBankTransaction bankTransaction = aggregateRepositoryTransactions.load(command.getTransactionId());
         UserAccount userAccount = aggregateRepositoryUserAccount.load(command.getUserAccountId());
 
         //TODO split to multiple steps
-        bankTransaction.matchWith(command.getUserAccountId());
-        userAccount.matchIncomingTransaction(command.getTransactionId(), bankTransaction.getAmount());
+        bankTransaction.matchWith(command.getUserAccountId(), metadata);
+        userAccount.matchIncomingTransaction(command.getTransactionId(), bankTransaction.getAmount(), metadata);
     }
 
     @CommandHandler
-    public void handleMatchOutgoingTransaction(MatchOutgoingExternalBankTransactionWithRequestedCommand command) {
+    public void handleMatchOutgoingTransaction(MatchOutgoingExternalBankTransactionWithRequestedCommand command, MetaData metadata) {
         ExternalBankTransaction bankTransaction = aggregateRepositoryTransactions.load(command.getExternalTransactionId());
         ExternalBankAccount bankAccount = aggregateRepositoryAccounts.load(bankTransaction.getBankAccountId());
 
@@ -65,8 +66,8 @@ public class ExternalBankTransactionCommandHandler {
             }
         }
         if (pendingRequestMatch!=null) {
-            bankAccount.externalTransactionRequestConfirmed(pendingRequestMatch.getTransactionId(), bankTransaction.getId());
-            bankTransaction.matchWith(pendingRequestMatch.getUserAccountId());
+            bankAccount.externalTransactionRequestConfirmed(pendingRequestMatch.getTransactionId(), bankTransaction.getId(), metadata);
+            bankTransaction.matchWith(pendingRequestMatch.getUserAccountId(), metadata);
         }
     }
     

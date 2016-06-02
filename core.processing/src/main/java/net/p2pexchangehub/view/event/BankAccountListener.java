@@ -10,6 +10,7 @@ import org.joda.time.DateTime;
 import net.p2pexchangehub.core.api.external.bank.ExternalBankAccountActiveSetEvent;
 import net.p2pexchangehub.core.api.external.bank.ExternalBankAccountCommunicationLoggedEvent;
 import net.p2pexchangehub.core.api.external.bank.ExternalBankAccountCreatedEvent;
+import net.p2pexchangehub.core.api.external.bank.ExternalBankAccountSynchronizationEnabledSetEvent;
 import net.p2pexchangehub.core.api.external.bank.ExternalBankAccountSynchronizedEvent;
 import net.p2pexchangehub.view.domain.BankAccount;
 import net.p2pexchangehub.view.domain.BankCommunication;
@@ -46,6 +47,13 @@ public class BankAccountListener implements ReplayAware {
     public void handleActiveSet(ExternalBankAccountActiveSetEvent event) {
         BankAccount bankAccount = bankAccountRepository.findOne(event.getBankAccountId());
         bankAccount.setActive(event.isActive());
+        bankAccountRepository.save(bankAccount);        
+    }
+
+    @EventHandler
+    public void handleSynchronizationEnabledSet(ExternalBankAccountSynchronizationEnabledSetEvent event) {
+        BankAccount bankAccount = bankAccountRepository.findOne(event.getBankAccountId());
+        bankAccount.setSynchronizationEnabled(event.isEnabled());
         bankAccountRepository.save(bankAccount);        
     }
 

@@ -1,4 +1,4 @@
-package net.p2pexchangehub.client.web;
+package net.p2pexchangehub.client.web.helpdesk;
 
 import com.vaadin.cdi.CDIView;
 import com.vaadin.data.util.BeanContainer;
@@ -12,12 +12,14 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.renderers.DateRenderer;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.servlet.http.HttpSession;
 
 import net.p2pexchangehub.client.web.tools.SessionCollector;
 
 @CDIView(SessionView.VIEW_NAME)
+@RolesAllowed("admin")
 public class SessionView extends VerticalLayout implements View {
 
     public static final String VIEW_NAME = "SesisonView";

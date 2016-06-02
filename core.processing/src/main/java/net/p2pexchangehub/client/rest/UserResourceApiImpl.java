@@ -30,9 +30,9 @@ import org.apache.commons.beanutils.converters.BigDecimalConverter;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 
 import george.test.exchange.core.domain.UserAccountRole;
-import net.p2pexchangehub.client.rest.security.AllowAll;
-import net.p2pexchangehub.client.rest.security.AllowRoles;
 import net.p2pexchangehub.client.rest.security.UserIdentity;
+import net.p2pexchangehub.client.security.AllowAll;
+import net.p2pexchangehub.client.security.AllowRoles;
 import net.p2pexchangehub.core.api.offer.CancelExchangeOfferCommand;
 import net.p2pexchangehub.core.api.offer.CreateOfferCommand;
 import net.p2pexchangehub.core.api.offer.MatchExchangeOfferCommand;

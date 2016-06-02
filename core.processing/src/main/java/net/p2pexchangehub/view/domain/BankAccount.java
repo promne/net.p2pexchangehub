@@ -23,6 +23,9 @@ public class BankAccount {
     private boolean active;
     public static final String PROPERTY_ACTIVE = "active";
 
+    private boolean synchronizationEnabled;
+    public static final String PROPERTY_SYNCHRONIZATION_ENABLED = "synchronizationEnabled";
+
     private String accountNumber;
     public static final String PROPERTY_ACCOUNT_NUMBER = "accountNumber";
 
@@ -91,6 +94,14 @@ public class BankAccount {
 
     public void setBankType(ExternalBankType bankType) {
         this.bankType = bankType;
+    }
+
+    public boolean isSynchronizationEnabled() {
+        return synchronizationEnabled;
+    }
+
+    public void setSynchronizationEnabled(boolean synchronizationEnabled) {
+        this.synchronizationEnabled = synchronizationEnabled;
     }
 
 }

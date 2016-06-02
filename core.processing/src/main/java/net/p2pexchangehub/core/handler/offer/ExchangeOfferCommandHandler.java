@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import org.axonframework.commandhandling.annotation.CommandHandler;
+import org.axonframework.domain.MetaData;
 import org.axonframework.repository.Repository;
 import org.slf4j.Logger;
 
@@ -70,14 +71,14 @@ public class ExchangeOfferCommandHandler {
     }    
     
     @CommandHandler
-    public void handleCreateOffer(CreateOfferCommand command) {
+    public void handleCreateOffer(CreateOfferCommand command, MetaData metadata) {
         userAccountRepository.load(command.getUserAccountId()); //ensure user account exists
-        ExchangeOffer offer = new ExchangeOffer(command.getOfferId(), command.getUserAccountId(), command.getCurrencyOffered(), command.getAmountOfferedMin(), command.getAmountOfferedMax(), command.getCurrencyRequested(), command.getRequestedExchangeRate());
+        ExchangeOffer offer = new ExchangeOffer(command.getOfferId(), command.getUserAccountId(), command.getCurrencyOffered(), command.getAmountOfferedMin(), command.getAmountOfferedMax(), command.getCurrencyRequested(), command.getRequestedExchangeRate(), metadata);
         repository.add(offer);
     }
 
     @CommandHandler
-    public void handleMatchOffers(MatchExchangeOfferCommand command) {
+    public void handleMatchOffers(MatchExchangeOfferCommand command, MetaData metadata) {
         userAccountRepository.load(command.getUserAccountId()); //ensure user account exists
         ExchangeOffer matchOffer = repository.load(command.getMatchOfferId());
         
@@ -92,31 +93,31 @@ public class ExchangeOfferCommandHandler {
         }
         
         BigDecimal offerExchangeRate = command.getAmountRequested().divide(command.getAmountOffered(), 4, RoundingMode.DOWN);
-        ExchangeOffer offer = new ExchangeOffer(command.getNewOfferId(), command.getUserAccountId(), matchOffer.getCurrencyRequested(), command.getAmountOffered(), command.getAmountOffered(), matchOffer.getCurrencyOffered(), offerExchangeRate);
+        ExchangeOffer offer = new ExchangeOffer(command.getNewOfferId(), command.getUserAccountId(), matchOffer.getCurrencyRequested(), command.getAmountOffered(), command.getAmountOffered(), matchOffer.getCurrencyOffered(), offerExchangeRate, metadata);
         repository.add(offer);
         
         //and match with minimal amounts satisfying both
-        matchOffer.matchWithOffer(command.getNewOfferId(), command.getAmountRequested(), requestedAmountExchanged);
-        offer.matchWithOffer(command.getMatchOfferId(), command.getAmountOffered(), command.getAmountRequested());
+        matchOffer.matchWithOffer(command.getNewOfferId(), command.getAmountRequested(), requestedAmountExchanged, metadata);
+        offer.matchWithOffer(command.getMatchOfferId(), command.getAmountOffered(), command.getAmountRequested(), metadata);
     }
 
     @CommandHandler
-    public void handleCredit(CreditOfferCommand command) {
-        repository.load(command.getOfferId()).credit(command.getTransactionId(), command.getUserAccountId(), command.getAmount());
+    public void handleCredit(CreditOfferCommand command, MetaData metadata) {
+        repository.load(command.getOfferId()).credit(command.getTransactionId(), command.getUserAccountId(), command.getAmount(), metadata);
     }
 
     @CommandHandler
-    public void handleCreditDeclineRequest(RequestOfferCreditDeclineCommand command) throws BankProviderException {
-        repository.load(command.getOfferId()).reserveCreditDecline(command.getTransactionId());
+    public void handleCreditDeclineRequest(RequestOfferCreditDeclineCommand command, MetaData metadata) throws BankProviderException {
+        repository.load(command.getOfferId()).reserveCreditDecline(command.getTransactionId(), metadata);
     }    
 
     @CommandHandler
-    public void handleCreditDeclineConfirmed(ConfirmOfferCreditDeclineCommand command) {
-        repository.load(command.getOfferId()).confirmCreditDecline(command.getTransactionId());        
+    public void handleCreditDeclineConfirmed(ConfirmOfferCreditDeclineCommand command, MetaData metadata) {
+        repository.load(command.getOfferId()).confirmCreditDecline(command.getTransactionId(), metadata);        
     }
     
     @CommandHandler
-    public void handleCompleteExchange(CompleteOfferExchangeCommand command) {
+    public void handleCompleteExchange(CompleteOfferExchangeCommand command, MetaData metadata) {
         ExchangeOffer offer = repository.load(command.getOfferId());
         ExchangeOffer matchedOffer = repository.load(offer.getMatchedExchangeOfferId());
         if (offer.getState() != OfferState.PAYED) {
@@ -126,23 +127,23 @@ public class ExchangeOfferCommandHandler {
             throw new IllegalStateException(String.format("Unable to pay offer %s when matching offer %s is in state %s", command.getOfferId(), matchedOffer.getId(), matchedOffer.getState()));
         }
         //TODO: locking ?
-        offer.completeExchange();
+        offer.completeExchange(metadata);
     }
     
     @CommandHandler
-    public void handleRequestDebit(RequestOfferDebitCommand command) throws BankProviderException {
+    public void handleRequestDebit(RequestOfferDebitCommand command, MetaData metadata) throws BankProviderException {
         ExchangeOffer offer = repository.load(command.getOfferId());
         UserAccount userAccount = userAccountRepository.load(offer.getUserAccountId());
         
         //TODO split to multiple steps
-        offer.requestDebit();
-        userAccount.chargeFromOffer(offer.getId(), new CurrencyAmount(offer.getCurrencyRequested(),offer.getAmountRequested()));
-        offer.confirmDebit();
+        offer.requestDebit(metadata);
+        userAccount.chargeFromOffer(offer.getId(), new CurrencyAmount(offer.getCurrencyRequested(),offer.getAmountRequested()), metadata);
+        offer.confirmDebit(metadata);
     }    
     
     @CommandHandler
-    public void handleCancelExchangeOfferCommand(CancelExchangeOfferCommand command) {
-        repository.load(command.getOfferId()).cancel();        
+    public void handleCancelExchangeOfferCommand(CancelExchangeOfferCommand command, MetaData metadata) {
+        repository.load(command.getOfferId()).cancel(metadata);        
     }
     
 }

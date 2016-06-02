@@ -2,6 +2,7 @@ package net.p2pexchangehub.client.web.components;
 
 import com.vaadin.addon.contextmenu.GridContextMenu;
 import com.vaadin.cdi.ViewScoped;
+import com.vaadin.data.util.GeneratedPropertyContainer;
 import com.vaadin.ui.Grid;
 
 import java.util.ArrayList;
@@ -30,8 +31,10 @@ public abstract class MongoGrid<T> extends Grid {
     @Inject
     private MongoOperations mongoOperations;
 
-    private MongoContainer<T> dataContainer;
+    private MongoContainer<T> mongoDataContainer;
 
+    private GeneratedPropertyContainer generatedPropertyContainer;
+    
     private GridContextMenu contextMenu;
 
     public MongoGrid(Class<T> clazz) {
@@ -45,8 +48,9 @@ public abstract class MongoGrid<T> extends Grid {
     
     @PostConstruct
     private void init() {
-        dataContainer = MongoContainer.Builder.forEntity(clazz, mongoOperations).buildBuffered();
-        this.setContainerDataSource(dataContainer);        
+        mongoDataContainer = MongoContainer.Builder.forEntity(clazz, mongoOperations).buildBuffered();
+        generatedPropertyContainer = new GeneratedPropertyContainer(mongoDataContainer);
+        this.setContainerDataSource(generatedPropertyContainer);        
     }
     
     public GridContextMenu getContextMenu() {
@@ -54,14 +58,17 @@ public abstract class MongoGrid<T> extends Grid {
     }
 
     public void refresh() {
-        //mongocontainer is lazy, we need to trick grid to refresh cached data 
+        //mongocontainer is lazy, we need to trick grid to refresh cached data
         super.setSortOrder(new ArrayList<>(super.getSortOrder()));
     }
     
-    @SuppressWarnings("unchecked")
     public MongoContainer<T> getMongoContainerDataSource() {
-        return (MongoContainer<T>) super.getContainerDataSource();
+        return mongoDataContainer;
     }    
+    
+    public GeneratedPropertyContainer getGeneratedPropertyContainer() {
+        return generatedPropertyContainer;
+    }
     
     public T getSelectedEntity() {
         Object itemId = getSelectedRow();

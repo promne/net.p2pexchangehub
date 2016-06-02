@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import org.axonframework.domain.MetaData;
 import org.axonframework.eventhandling.annotation.EventHandler;
 import org.axonframework.eventsourcing.annotation.AbstractAnnotatedAggregateRoot;
 import org.axonframework.eventsourcing.annotation.AggregateIdentifier;
@@ -24,6 +25,7 @@ import net.p2pexchangehub.core.api.user.UserAccountDebitConfirmedEvent;
 import net.p2pexchangehub.core.api.user.UserAccountDebitDiscarderEvent;
 import net.p2pexchangehub.core.api.user.UserAccountDebitForExternalBankAccountReservedEvent;
 import net.p2pexchangehub.core.api.user.UserAccountDebitForOfferReservedEvent;
+import net.p2pexchangehub.core.api.user.UserAccountNotificationSendRequestedEvent;
 import net.p2pexchangehub.core.api.user.UserAccountPasswordChangedEvent;
 import net.p2pexchangehub.core.api.user.UserAccountPaymentsCodeChangedEvent;
 import net.p2pexchangehub.core.api.user.UserAccountRolesAddedEvent;
@@ -61,9 +63,9 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
         super();
     }
 
-    public UserAccount(String userAccountId, String username) {
+    public UserAccount(String userAccountId, String username, MetaData metadata) {
         super();
-        apply(new UserAccountCreatedEvent(userAccountId, username));
+        apply(new UserAccountCreatedEvent(userAccountId, username), metadata);
     }
 
     private CurrencyAmount getCurrencyAccountBalance(CurrencyAmount currencyAmount) {
@@ -78,6 +80,10 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
         return Optional.ofNullable(bankAccounts.get(id));
     }
     
+    public ContactDetail getContactDetail(String contactId) {
+        return contactDetails.get(contactId);
+    }
+    
     public String getPaymentsCode() {
         return paymentsCode;
     }
@@ -88,12 +94,12 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
 //        username = event.getUsername();
     }
 
-    public void createBankAccount(String currency, String accountNumber) {
+    public void createBankAccount(String currency, String accountNumber, MetaData metadata) {
         UserBankAccount userBankAccount = new UserBankAccount(UUID.randomUUID().toString(), currency, accountNumber);
         if (bankAccounts.values().contains(userBankAccount)) {
             throw new IllegalStateException(String.format("Bank account %s already exists for user account %s", userBankAccount, id));
         }
-        apply(new UserBankAccountCreatedEvent(this.id, userBankAccount));
+        apply(new UserBankAccountCreatedEvent(this.id, userBankAccount), metadata);
     }
     
     @EventHandler
@@ -101,12 +107,12 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
         bankAccounts.put(event.getBankAccount().getId(), event.getBankAccount());
     }
 
-    public void matchIncomingTransaction(String transactionId, CurrencyAmount amount) {
+    public void matchIncomingTransaction(String transactionId, CurrencyAmount amount, MetaData metadata) {
         if (!amount.isNotNegative()) {
             throw new IllegalStateException(String.format("Incoming transaction %s %s %s %s", amount.getAmount(), amount.getCurrencyCode(), id, transactionId));            
         }
         CurrencyAmount currencyNewBalance = getCurrencyAccountBalance(amount).add(amount);
-        apply(new UserIncomingTransactionMatchedEvent(id, transactionId, amount, currencyNewBalance));
+        apply(new UserIncomingTransactionMatchedEvent(id, transactionId, amount, currencyNewBalance), metadata);
     }
 
     @EventHandler
@@ -114,9 +120,9 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
         currencyAccounts.put(event.getNewBalance().getCurrencyCode(), event.getNewBalance());
     }
 
-    public void creditFromDeclinedOffer(String transactionId, String offerId, CurrencyAmount amount) {
+    public void creditFromDeclinedOffer(String transactionId, String offerId, CurrencyAmount amount, MetaData metadata) {
         CurrencyAmount currencyNewBalance = getCurrencyAccountBalance(amount).add(amount);
-        apply(new UserAccountCreditedFromDeclinedOfferEvent(id, transactionId, offerId, amount, currencyNewBalance));
+        apply(new UserAccountCreditedFromDeclinedOfferEvent(id, transactionId, offerId, amount, currencyNewBalance), metadata);
     }
 
     @EventHandler
@@ -124,12 +130,12 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
         currencyAccounts.put(event.getNewBalance().getCurrencyCode(), event.getNewBalance());
     }
     
-    public void chargeFromOffer(String offerId, CurrencyAmount amount) {
+    public void chargeFromOffer(String offerId, CurrencyAmount amount, MetaData metadata) {
         if (!amount.isNotNegative()) {
             throw new IllegalStateException(String.format("Charge from offer %s %s %s %s", amount.getAmount(), amount.getCurrencyCode(), id, offerId));            
         }
         CurrencyAmount currencyNewBalance = getCurrencyAccountBalance(amount).add(amount);
-        apply(new UserAccountChargedFromOfferEvent(id, offerId, amount, currencyNewBalance));
+        apply(new UserAccountChargedFromOfferEvent(id, offerId, amount, currencyNewBalance), metadata);
     }
     
     @EventHandler
@@ -137,8 +143,8 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
         currencyAccounts.put(event.getNewBalance().getCurrencyCode(), event.getNewBalance());
     }
 
-    public void setPasswordHash(String newPasswordHash) {
-        apply(new UserAccountPasswordChangedEvent(id, newPasswordHash));
+    public void setPasswordHash(String newPasswordHash, MetaData metadata) {
+        apply(new UserAccountPasswordChangedEvent(id, newPasswordHash), metadata);
     }
 
     @EventHandler
@@ -146,15 +152,15 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
         //nothing
     }
 
-    public void enable() {
+    public void enable(MetaData metadata) {
         if (this.state!=UserAccountState.ACTIVE) {
-            apply(new UserAccountStateChangedEvent(id, UserAccountState.ACTIVE));
+            apply(new UserAccountStateChangedEvent(id, UserAccountState.ACTIVE), metadata);
         }
     }
 
-    public void disable() {
+    public void disable(MetaData metadata) {
         if (this.state!=UserAccountState.DISABLED) {
-            apply(new UserAccountStateChangedEvent(id, UserAccountState.DISABLED));
+            apply(new UserAccountStateChangedEvent(id, UserAccountState.DISABLED), metadata);
         }
     }
     
@@ -163,8 +169,8 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
         this.state = event.getNewState();
     }
     
-    public void addRoles(Set<UserAccountRole> userAccountRoles) {
-        apply(new UserAccountRolesAddedEvent(id, userAccountRoles));
+    public void addRoles(Set<UserAccountRole> userAccountRoles, MetaData metadata) {
+        apply(new UserAccountRolesAddedEvent(id, userAccountRoles), metadata);
     }
     
     @EventHandler
@@ -172,8 +178,8 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
         roles.addAll(event.getRoles());
     }
 
-    public void removeRoles(Set<UserAccountRole> userAccountRoles) {
-        apply(new UserAccountRolesRemovedEvent(id, userAccountRoles));
+    public void removeRoles(Set<UserAccountRole> userAccountRoles, MetaData metadata) {
+        apply(new UserAccountRolesRemovedEvent(id, userAccountRoles), metadata);
     }
     
     @EventHandler
@@ -181,11 +187,11 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
         roles.removeAll(event.getRoles());
     }
 
-    public void addEmailContact(String emailAddress) {
+    public void addEmailContact(String emailAddress, MetaData metadata) {
         if (contactDetails.values().stream().anyMatch(cd -> cd.getType()==Type.EMAIL)) {
             throw new IllegalStateException("User account " + id + " already has an email");
         }
-        apply(new EmailContactAddedEvent(id, UUID.randomUUID().toString(), emailAddress));
+        apply(new EmailContactAddedEvent(id, UUID.randomUUID().toString(), emailAddress), metadata);
     }
     
     @EventHandler
@@ -193,14 +199,14 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
         contactDetails.put(event.getContactDetailId(), new ContactDetail(event.getContactDetailId(), ContactDetail.Type.EMAIL, event.getEmailAddress()));
     }
 
-    public void validateContact(String contactId, String validatingCode) {
+    public void validateContact(String contactId, String validatingCode, MetaData metadata) {
         ContactDetail contactDetail = contactDetails.get(contactId);
         if (contactDetail!=null) {
             if (!contactDetail.isConfirmed()) {
                 if (!contactDetail.getValidationCode().equals(validatingCode) || (new Date()).after(contactDetail.getValidationCodeExpiration())) {
                     throw new IllegalStateException("Wrong validating code or expired one for user account " + id + " contact detail " + contactId);
                 }
-                apply(new ContactDetailValidatedEvent(id, contactId));            
+                apply(new ContactDetailValidatedEvent(id, contactId), metadata);            
             }
         }
     }
@@ -210,8 +216,8 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
         contactDetails.get(event.getContactId()).setConfirmed(true);
     }
     
-    public void removeContact(String contactId) {
-        apply(new ContactDetailRemovedEvent(id, contactId));
+    public void removeContact(String contactId, MetaData metadata) {
+        apply(new ContactDetailRemovedEvent(id, contactId), metadata);
     }
 
     @EventHandler
@@ -219,11 +225,11 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
         contactDetails.remove(event.getContactId());
     }
     
-    public void addPhoneNumberContact(String phoneNumber) {
+    public void addPhoneNumberContact(String phoneNumber, MetaData metadata) {
         if (contactDetails.values().stream().anyMatch(cd -> cd.getType()==Type.PHONE)) {
             throw new IllegalStateException("User account " + id + " already has a phone number");
         }
-        apply(new PhoneNumberContactAddedEvent(id, UUID.randomUUID().toString(), phoneNumber));
+        apply(new PhoneNumberContactAddedEvent(id, UUID.randomUUID().toString(), phoneNumber), metadata);
     }
 
     @EventHandler
@@ -231,11 +237,11 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
         contactDetails.put(event.getContactDetailId(), new ContactDetail(event.getContactDetailId(), ContactDetail.Type.PHONE, event.getNumber()));        
     }
 
-    public void requestValidationCode(String contactId, String validationCode, Date validationCodeExpiration) {
+    public void requestValidationCode(String contactId, String validationCode, Date validationCodeExpiration, MetaData metadata) {
         if (!contactDetails.containsKey(contactId)) {
             throw new IllegalStateException("User account " + id + " doesn't have contact " + contactId);
         }
-        apply(new ContactDetailValidationRequestedEvent(id, contactId, validationCode, validationCodeExpiration));
+        apply(new ContactDetailValidationRequestedEvent(id, contactId, validationCode, validationCodeExpiration), metadata);
     }
 
     @EventHandler
@@ -245,8 +251,8 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
         contactDetail.setValidationCodeExpiration(event.getValidationCodeExpiration());
     }
 
-    public void changePaymentsCode(String code) {
-        apply(new UserAccountPaymentsCodeChangedEvent(id, code));
+    public void changePaymentsCode(String code, MetaData metadata) {
+        apply(new UserAccountPaymentsCodeChangedEvent(id, code), metadata);
     }
 
     @EventHandler
@@ -255,10 +261,10 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
         this.paymentsCode=event.getCode();
     }
 
-    public void reserveMoneyForOffer(String transactionId, String offerId, CurrencyAmount amount) {
+    public void reserveMoneyForOffer(String transactionId, String offerId, CurrencyAmount amount, MetaData metadata) {
         CurrencyAmount newBalance = getCurrencyAccountBalance(amount).subtract(amount);
         if (newBalance.isNotNegative()) {
-            apply(new UserAccountDebitForOfferReservedEvent(id, transactionId, offerId, amount, newBalance));
+            apply(new UserAccountDebitForOfferReservedEvent(id, transactionId, offerId, amount, newBalance), metadata);
         }
     }
 
@@ -268,12 +274,12 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
         currencyAccounts.put(event.getNewBalance().getCurrencyCode(), event.getNewBalance());
     }
 
-    public void confirmDebitReservation(String transactionId) {
+    public void confirmDebitReservation(String transactionId, MetaData metadata) {
         CurrencyAmount amount = currencyAccountsReservations.get(transactionId);
         if (amount == null) {
             throw new IllegalStateException("Can't confirm debit of nonexisting transaction " + transactionId);
         }
-        apply(new UserAccountDebitConfirmedEvent(id, transactionId, amount));
+        apply(new UserAccountDebitConfirmedEvent(id, transactionId, amount), metadata);
     }
 
     @EventHandler
@@ -281,13 +287,13 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
         currencyAccountsReservations.remove(event.getTransactionId());
     }
     
-    public void discardDebitReservation(String transactionId) {
+    public void discardDebitReservation(String transactionId, MetaData metadata) {
         CurrencyAmount amount = currencyAccountsReservations.get(transactionId);
         if (amount == null) {
             throw new IllegalStateException("Can't discard debit of nonexisting transaction " + transactionId);
         }
         CurrencyAmount newBalance = getCurrencyAccountBalance(amount).add(amount);
-        apply(new UserAccountDebitDiscarderEvent(id, transactionId, amount, newBalance));
+        apply(new UserAccountDebitDiscarderEvent(id, transactionId, amount, newBalance), metadata);
     }
     
     @EventHandler
@@ -296,10 +302,10 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
         currencyAccountsReservations.remove(event.getTransactionId());
     }
 
-    public void reserveMoneyForExternalBankAccount(String transactionId, String bankAccountId, CurrencyAmount amount) {
+    public void reserveMoneyForExternalBankAccount(String transactionId, String bankAccountId, CurrencyAmount amount, MetaData metadata) {
         CurrencyAmount newBalance = getCurrencyAccountBalance(amount).subtract(amount);
         if (newBalance.isNotNegative() && bankAccounts.containsKey(bankAccountId)) {
-            apply(new UserAccountDebitForExternalBankAccountReservedEvent(id, transactionId, bankAccountId, amount, newBalance));
+            apply(new UserAccountDebitForExternalBankAccountReservedEvent(id, transactionId, bankAccountId, amount, newBalance), metadata);
         }
     }
 
@@ -309,5 +315,14 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
         currencyAccounts.put(event.getNewBalance().getCurrencyCode(), event.getNewBalance());
     }
 
+    public void requestNofitication(String notificationTemplateId, Map<String, Object> templateData, MetaData metaData) {
+        apply(new UserAccountNotificationSendRequestedEvent(id, notificationTemplateId, templateData), metaData);
+    }
+
+    @EventHandler
+    private void handle(UserAccountNotificationSendRequestedEvent event) {
+        // nothing
+    }
+    
 }
 

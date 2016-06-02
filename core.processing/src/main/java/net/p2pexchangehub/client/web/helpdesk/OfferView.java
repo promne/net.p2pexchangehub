@@ -1,4 +1,4 @@
-package net.p2pexchangehub.client.web;
+package net.p2pexchangehub.client.web.helpdesk;
 
 import com.mongodb.DBCollection;
 import com.vaadin.addon.contextmenu.GridContextMenu;
@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -33,6 +34,7 @@ import net.p2pexchangehub.view.domain.BankAccount;
 import net.p2pexchangehub.view.domain.Offer;
 
 @CDIView(OfferView.VIEW_NAME)
+@RolesAllowed("admin")
 public class OfferView extends VerticalLayout implements View {
 
     public static final String VIEW_NAME = "OffersView";

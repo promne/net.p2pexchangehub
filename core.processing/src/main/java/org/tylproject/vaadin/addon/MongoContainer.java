@@ -269,7 +269,8 @@ public class MongoContainer<Bean>
         this.baseSort = bldr.sort;
         this.filterConverter = bldr.filterConverter;
         this.baseQuery = Query.query(criteria).with(baseSort);
-        resetQuery();
+        
+        this.query = makeBaseQuery();
 
 
 
@@ -539,7 +540,7 @@ public class MongoContainer<Bean>
     public List<Object> getItemIds(int startIndex, int numberOfItems) {
         //List<BeanId> beans = mongoOps.find(Query.query(criteria).skip(startIndex).limit(numberOfItems), BeanId.class);
         //List<Object> ids = new PropertyList<Object,BeanId>(beans, beanIdDescriptor, "_id");
-        log.info(String.format("range: [%d,%d]", startIndex, numberOfItems));
+        log.fine(() -> String.format("range: [%d,%d]", startIndex, numberOfItems));
         if (page.isValid() && page.isWithinRange(startIndex, numberOfItems)) {
             return page.subList(startIndex, numberOfItems); // return the requested range
         }
@@ -700,20 +701,20 @@ public class MongoContainer<Bean>
     }
 
     protected void doRemoveAllContainerFilters() {
-        resetQuery();
+        this.query = makeBaseQuery();
+        this.appliedFilters.clear();
+        this.appliedCriteria.clear();
         applySort(this.query, this.sort);
         page.setInvalid();
     }
 
-    protected void resetQuery() {
+    protected void resetQueryWithNewSort(Sort sort) {
         this.query = makeBaseQuery();
-        this.appliedFilters.clear();
-        this.appliedCriteria.clear();
-        this.sort = null;
+        applySort(this.query, sort);
+        this.sort = sort;
+        applyCriteriaList(this.query, appliedCriteria);
     }
-
-
-
+    
     @Override
     public Collection<Filter> getContainerFilters() {
         return Collections.unmodifiableList(new ArrayList<>(appliedFilters));
@@ -745,16 +746,10 @@ public class MongoContainer<Bean>
             }
         }
 
-        resetQuery();
 
-        applySort(this.query, result);
-        applyCriteriaList(this.query, appliedCriteria);
-
-        this.sort = result;
-
+        resetQueryWithNewSort(result);
         refresh();
         fireItemSetChange();
-
     }
 
     protected Query applySort(Query q, Sort s) {

@@ -2,6 +2,7 @@ package net.p2pexchangehub.core.handler.external.bank.transaction;
 
 import java.util.Date;
 
+import org.axonframework.domain.MetaData;
 import org.axonframework.eventhandling.annotation.EventHandler;
 import org.axonframework.eventsourcing.annotation.AbstractAnnotatedAggregateRoot;
 import org.axonframework.eventsourcing.annotation.AggregateIdentifier;
@@ -50,9 +51,9 @@ public class ExternalBankTransaction extends AbstractAnnotatedAggregateRoot<Stri
         return referenceInfo;
     }
 
-    public ExternalBankTransaction(String id, String bankAccountId, CurrencyAmount amount, Date date, String fromAccount, String referenceInfo, BankSpecificTransactionData bankSpecificTransactionData) {
+    public ExternalBankTransaction(String id, String bankAccountId, CurrencyAmount amount, Date date, String fromAccount, String referenceInfo, BankSpecificTransactionData bankSpecificTransactionData, MetaData metadata) {
         super();
-        apply(new ExternalBankTransactionCreatedEvent(id, bankAccountId, amount, date, fromAccount, referenceInfo, bankSpecificTransactionData));
+        apply(new ExternalBankTransactionCreatedEvent(id, bankAccountId, amount, date, fromAccount, referenceInfo, bankSpecificTransactionData), metadata);
     }
 
     @EventHandler
@@ -66,11 +67,11 @@ public class ExternalBankTransaction extends AbstractAnnotatedAggregateRoot<Stri
     }
 
 
-    public void matchWith(String userAccountId) {
+    public void matchWith(String userAccountId, MetaData metadata) {
         if (matchedWithUserAccount) {
             throw new IllegalStateException("Unable to match transaction "+ id);
         }
-        apply(new ExternalBankTransactionMatchedWithUserAccountEvent(id, userAccountId));
+        apply(new ExternalBankTransactionMatchedWithUserAccountEvent(id, userAccountId), metadata);
     }
     
     @EventHandler

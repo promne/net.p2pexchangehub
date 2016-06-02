@@ -1,4 +1,4 @@
-package net.p2pexchangehub.client.rest.security;
+package net.p2pexchangehub.client.security;
 
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.ElementType.TYPE;

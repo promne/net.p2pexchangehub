@@ -13,6 +13,7 @@ import net.p2pexchangehub.core.api.user.UserAccountCreditedFromDeclinedOfferEven
 import net.p2pexchangehub.core.api.user.UserAccountDebitDiscarderEvent;
 import net.p2pexchangehub.core.api.user.UserAccountDebitForExternalBankAccountReservedEvent;
 import net.p2pexchangehub.core.api.user.UserAccountDebitForOfferReservedEvent;
+import net.p2pexchangehub.core.api.user.UserAccountNameChangedEvent;
 import net.p2pexchangehub.core.api.user.UserAccountPasswordChangedEvent;
 import net.p2pexchangehub.core.api.user.UserAccountPaymentsCodeChangedEvent;
 import net.p2pexchangehub.core.api.user.UserAccountRolesAddedEvent;
@@ -20,6 +21,7 @@ import net.p2pexchangehub.core.api.user.UserAccountRolesRemovedEvent;
 import net.p2pexchangehub.core.api.user.UserAccountStateChangedEvent;
 import net.p2pexchangehub.core.api.user.UserIncomingTransactionMatchedEvent;
 import net.p2pexchangehub.core.api.user.bank.UserBankAccountCreatedEvent;
+import net.p2pexchangehub.core.api.user.bank.UserBankAccountOwnerNameChangedEvent;
 import net.p2pexchangehub.core.api.user.contact.ContactDetailAddedEvent;
 import net.p2pexchangehub.core.api.user.contact.ContactDetailValidatedEvent;
 import net.p2pexchangehub.core.api.user.contact.EmailContactAddedEvent;
@@ -52,8 +54,15 @@ public class UserAccountListener implements ReplayAware {
     @EventHandler
     public void handleUserBankAccountCreatedEvent(UserBankAccountCreatedEvent event) {
         UserAccount userAccount = repository.findOne(event.getUserAccountId());
-        UserBankAccount bankAccount = new UserBankAccount(event.getBankAccount().getId(), event.getBankAccount().getCurrency(), event.getBankAccount().getAccountNumber());
+        UserBankAccount bankAccount = new UserBankAccount(event.getBankAccountId(), event.getCountry(), event.getCurrency(), event.getAccountNumber());
         userAccount.getBankAccounts().add(bankAccount);
+        repository.save(userAccount);        
+    }
+
+    @EventHandler
+    public void handleUserBankAccountCreatedEvent(UserBankAccountOwnerNameChangedEvent event) {
+        UserAccount userAccount = repository.findOne(event.getUserAccountId());
+        userAccount.getBankAccount(event.getBankAccountId()).get().setOwnerName(event.getOwnerName());
         repository.save(userAccount);        
     }
     
@@ -61,6 +70,13 @@ public class UserAccountListener implements ReplayAware {
     public void handle(UserAccountPasswordChangedEvent event) {
         UserAccount userAccount = repository.findOne(event.getUserAccountId());
         userAccount.setPasswordHash(event.getNewPasswordHash());
+        repository.save(userAccount);
+    }
+
+    @EventHandler
+    public void handle(UserAccountNameChangedEvent event) {
+        UserAccount userAccount = repository.findOne(event.getUserAccountId());
+        userAccount.setName(event.getName());
         repository.save(userAccount);
     }
 

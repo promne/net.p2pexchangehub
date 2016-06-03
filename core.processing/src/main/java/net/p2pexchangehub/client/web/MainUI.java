@@ -64,7 +64,7 @@ public class MainUI extends UI {
     @Override
     protected void init(VaadinRequest request) {
         if (userIdentity.isLoggeedIn()) {
-            loadProtectedResources();
+            loadProtectedResources(request);
         } else {
             MTextField usernameField = new MTextField("Username");
             usernameField.setMaxLength(50);
@@ -81,7 +81,7 @@ public class MainUI extends UI {
                 Optional<UserAccount> user = authenticationService.authenticate(usernameField.getValue(), passwordField.getValue(), null);
                 if (user.isPresent()) {
                     userIdentity.setUserAccountId(user.get().getId());
-                    loadProtectedResources();
+                    loadProtectedResources(request);
                     messageBox[0].close();
                 } else {
                     passwordField.clear();
@@ -93,7 +93,7 @@ public class MainUI extends UI {
         }
     }
     
-    protected void loadProtectedResources() {
+    protected void loadProtectedResources(VaadinRequest request) {
         MenuBar menuBar = new MenuBar();
         
         addTopNavigation(menuBar, "Dashboard", ThemeResources.HOME, MyDashboardView.class);
@@ -137,9 +137,10 @@ public class MainUI extends UI {
 
         setContent(mainLayout);
         
+        viewProvider.setDefaultView(MyDashboardView.class);
         Navigator navigator = new Navigator(this, contentPanel);
         navigator.addProvider(viewProvider);
-        navigator.navigateTo(MyDashboardView.VIEW_NAME);
+        navigator.navigateTo(navigator.getState());
     }
 
     

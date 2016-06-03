@@ -1,25 +1,44 @@
 package net.p2pexchangehub.core.api.user.bank;
 
-import net.p2pexchangehub.core.handler.user.UserBankAccount;
-
 public class UserBankAccountCreatedEvent {
 
     private final String userAccountId;
 
-    private final UserBankAccount bankAccount;
+    private final String bankAccountId;
 
-    public UserBankAccountCreatedEvent(String userAccountId, UserBankAccount bankAccount) {
+    private final String country;
+    
+    private final String currency;
+    
+    private final String accountNumber;
+
+    public UserBankAccountCreatedEvent(String userAccountId, String bankAccountId, String country, String currency, String accountNumber) {
         super();
         this.userAccountId = userAccountId;
-        this.bankAccount = bankAccount;
+        this.bankAccountId = bankAccountId;
+        this.country = country;
+        this.currency = currency;
+        this.accountNumber = accountNumber;
     }
 
     public String getUserAccountId() {
         return userAccountId;
     }
 
-    public UserBankAccount getBankAccount() {
-        return bankAccount;
+    public String getBankAccountId() {
+        return bankAccountId;
     }
 
+    public String getCountry() {
+        return country;
+    }
+
+    public String getCurrency() {
+        return currency;
+    }
+
+    public String getAccountNumber() {
+        return accountNumber;
+    }
+    
 }

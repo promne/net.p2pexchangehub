@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 
 import net.p2pexchangehub.core.api._domain.CurrencyAmount;
 import net.p2pexchangehub.core.api.user.AddUserAccountRolesCommand;
+import net.p2pexchangehub.core.api.user.ChangeUserAccountNameCommand;
 import net.p2pexchangehub.core.api.user.ChangeUserAccountPaymentsCode;
 import net.p2pexchangehub.core.api.user.ConfirmAccountDebitReservationCommand;
 import net.p2pexchangehub.core.api.user.CreateUserAccountCommand;
@@ -67,7 +68,15 @@ public class UserAccountCommandHandler {
     @CommandHandler
     public void handleCreateBankAccount(CreateUserBankAccountCommand command, MetaData metadata) {
         UserAccount userAccount = repository.load(command.getUserAccountId());
-        userAccount.createBankAccount(command.getCurrency(), command.getAccountNumber(), metadata);
+        //TODO add validators
+        
+        userAccount.createBankAccount(command.getCountry(), command.getCurrency(), command.getAccountNumber(), command.getAccountOwnerName(), metadata);
+    }
+
+    @CommandHandler
+    public void handleChangeName(ChangeUserAccountNameCommand command, MetaData metadata) {
+        UserAccount userAccount = repository.load(command.getUserAccountId());
+        userAccount.setName(command.getName(), metadata);
     }
     
     @CommandHandler
@@ -131,7 +140,7 @@ public class UserAccountCommandHandler {
     
     @CommandHandler
     public void handleValidateContact(ValidateContactDetailCommand command, MetaData metadata) {
-        repository.load(command.getUserAccountId()).validateContact(command.getContactId(), command.getValidatingCode(), metadata);        
+        repository.load(command.getUserAccountId()).validateContact(command.getValidatingCode(), metadata);        
     }
 
     @CommandHandler

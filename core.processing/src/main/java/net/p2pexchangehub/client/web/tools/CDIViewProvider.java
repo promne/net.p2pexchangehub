@@ -15,6 +15,8 @@ public class CDIViewProvider extends com.vaadin.cdi.CDIViewProvider {
     @Inject
     private AccessControl accessControl;
 
+    private Class<? extends View> defaultView;
+    
     public String getViewNameFromAnnotation(Class<? extends View> view) {
         CDIView annotation = view.getAnnotation(CDIView.class);
         if (annotation != null) {
@@ -23,6 +25,24 @@ public class CDIViewProvider extends com.vaadin.cdi.CDIViewProvider {
         return null;
     }
     
+    public void setDefaultView(Class<? extends View> view) {
+        defaultView = view;
+    }
+    
+
+    @Override
+    public String getViewName(String viewAndParameters) {
+        if (viewAndParameters.isEmpty() && defaultView!=null) {
+            return super.getViewName(getViewNameFromAnnotation(defaultView));
+        }
+        return super.getViewName(viewAndParameters);
+    }
+
+    @Override
+    public View getView(String viewName) {
+        return super.getView(viewName);
+    }
+
     public boolean isUserHavingAccessToView(Class<? extends View> view) {
         if (view.isAnnotationPresent(CDIView.class)) {
             if (!view.isAnnotationPresent(RolesAllowed.class)) {

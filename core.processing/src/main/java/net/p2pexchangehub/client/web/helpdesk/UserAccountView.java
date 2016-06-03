@@ -122,6 +122,9 @@ public class UserAccountView extends VerticalLayout implements View {
 
         overviewGrid.addComponent(new Label("Username"));
         overviewGrid.addComponent(new Label(userAccount.getUsername()));
+        
+        overviewGrid.addComponent(new Label("Name"));
+        overviewGrid.addComponent(new Label(userAccount.getName()));
 
         overviewGrid.addComponent(new Label("Enabled"));
         overviewGrid.addComponent(new Label(Boolean.toString(userAccount.isEnabled())));

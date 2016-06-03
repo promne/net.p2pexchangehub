@@ -5,10 +5,12 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.axonframework.domain.MetaData;
 import org.axonframework.eventhandling.annotation.EventHandler;
@@ -25,6 +27,7 @@ import net.p2pexchangehub.core.api.user.UserAccountDebitConfirmedEvent;
 import net.p2pexchangehub.core.api.user.UserAccountDebitDiscarderEvent;
 import net.p2pexchangehub.core.api.user.UserAccountDebitForExternalBankAccountReservedEvent;
 import net.p2pexchangehub.core.api.user.UserAccountDebitForOfferReservedEvent;
+import net.p2pexchangehub.core.api.user.UserAccountNameChangedEvent;
 import net.p2pexchangehub.core.api.user.UserAccountNotificationSendRequestedEvent;
 import net.p2pexchangehub.core.api.user.UserAccountPasswordChangedEvent;
 import net.p2pexchangehub.core.api.user.UserAccountPaymentsCodeChangedEvent;
@@ -33,6 +36,7 @@ import net.p2pexchangehub.core.api.user.UserAccountRolesRemovedEvent;
 import net.p2pexchangehub.core.api.user.UserAccountStateChangedEvent;
 import net.p2pexchangehub.core.api.user.UserIncomingTransactionMatchedEvent;
 import net.p2pexchangehub.core.api.user.bank.UserBankAccountCreatedEvent;
+import net.p2pexchangehub.core.api.user.bank.UserBankAccountOwnerNameChangedEvent;
 import net.p2pexchangehub.core.api.user.contact.ContactDetailRemovedEvent;
 import net.p2pexchangehub.core.api.user.contact.ContactDetailValidatedEvent;
 import net.p2pexchangehub.core.api.user.contact.ContactDetailValidationRequestedEvent;
@@ -94,17 +98,21 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
 //        username = event.getUsername();
     }
 
-    public void createBankAccount(String currency, String accountNumber, MetaData metadata) {
-        UserBankAccount userBankAccount = new UserBankAccount(UUID.randomUUID().toString(), currency, accountNumber);
-        if (bankAccounts.values().contains(userBankAccount)) {
-            throw new IllegalStateException(String.format("Bank account %s already exists for user account %s", userBankAccount, id));
-        }
-        apply(new UserBankAccountCreatedEvent(this.id, userBankAccount), metadata);
+    public void createBankAccount(String country, String currency, String accountNumber, String ownerName, MetaData metadata) {
+        String bankAccountId = UUID.randomUUID().toString();
+        apply(new UserBankAccountCreatedEvent(this.id, bankAccountId, country, currency, accountNumber), metadata);
+        apply(new UserBankAccountOwnerNameChangedEvent(this.id, bankAccountId, ownerName), metadata);
     }
     
     @EventHandler
     private void handle(UserBankAccountCreatedEvent event) {
-        bankAccounts.put(event.getBankAccount().getId(), event.getBankAccount());
+        UserBankAccount userBankAccount = new UserBankAccount(event.getBankAccountId(), event.getCountry(), event.getCurrency(), event.getAccountNumber());
+        bankAccounts.put(event.getBankAccountId(), userBankAccount);
+    }
+
+    @EventHandler
+    private void handle(UserBankAccountOwnerNameChangedEvent event) {
+        bankAccounts.get(event.getBankAccountId()).setOwnerName(event.getOwnerName());
     }
 
     public void matchIncomingTransaction(String transactionId, CurrencyAmount amount, MetaData metadata) {
@@ -199,15 +207,18 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
         contactDetails.put(event.getContactDetailId(), new ContactDetail(event.getContactDetailId(), ContactDetail.Type.EMAIL, event.getEmailAddress()));
     }
 
-    public void validateContact(String contactId, String validatingCode, MetaData metadata) {
-        ContactDetail contactDetail = contactDetails.get(contactId);
-        if (contactDetail!=null) {
-            if (!contactDetail.isConfirmed()) {
-                if (!contactDetail.getValidationCode().equals(validatingCode) || (new Date()).after(contactDetail.getValidationCodeExpiration())) {
-                    throw new IllegalStateException("Wrong validating code or expired one for user account " + id + " contact detail " + contactId);
-                }
-                apply(new ContactDetailValidatedEvent(id, contactId), metadata);            
-            }
+    public void validateContact(String validatingCode, MetaData metadata) {
+        List<ContactDetail> matchingContacts = contactDetails.values().stream()
+            .filter(c -> !c.isConfirmed())
+            .filter(c-> c.getValidationCodeExpiration().after(new Date()))
+            .filter(c -> c.getValidationCode().equals(validatingCode))
+            .collect(Collectors.toList());
+        if (matchingContacts.size()>1) {
+            throw new IllegalStateException("Unable to handle multiple matching contacts for code " + validatingCode);            
+        }
+        if (!matchingContacts.isEmpty()) {
+            ContactDetail cd = matchingContacts.get(0);
+            apply(new ContactDetailValidatedEvent(id, cd.getId()), metadata);            
         }
     }
 
@@ -321,6 +332,15 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
 
     @EventHandler
     private void handle(UserAccountNotificationSendRequestedEvent event) {
+        // nothing
+    }
+
+    public void setName(String name, MetaData metadata) {
+        apply(new UserAccountNameChangedEvent(id, name), metadata);
+    }
+    
+    @EventHandler
+    private void handle(UserAccountNameChangedEvent event) {
         // nothing
     }
     

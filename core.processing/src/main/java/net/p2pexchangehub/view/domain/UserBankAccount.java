@@ -5,18 +5,26 @@ public class UserBankAccount {
     private String id;
     public static final String PROPERTY_ID = "id";
 
+    private String country;
+    public static final String PROPERTY_COUNTRY = "country";
+    
     private String currency;
     public static final String PROPERTY_CURRENCY = "currency";
 
     private String accountNumber;
     public static final String PROPERTY_ACCOUNT_NUMBER = "accountNumber";
 
+    private String ownerName;
+    public static final String PROPERTY_OWNER_NAME= "ownerName";
+
     public UserBankAccount() {
         super();
     }
 
-    public UserBankAccount(String id, String currency, String accountNumber) {
+    public UserBankAccount(String id, String country, String currency, String accountNumber) {
+        super();
         this.id = id;
+        this.country = country;
         this.currency = currency;
         this.accountNumber = accountNumber;
     }
@@ -45,6 +53,22 @@ public class UserBankAccount {
         this.accountNumber = accountNumber;
     }
 
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public String getOwnerName() {
+        return ownerName;
+    }
+
+    public void setOwnerName(String ownerName) {
+        this.ownerName = ownerName;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -69,5 +93,5 @@ public class UserBankAccount {
             return false;
         return true;
     }
-        
+    
 }

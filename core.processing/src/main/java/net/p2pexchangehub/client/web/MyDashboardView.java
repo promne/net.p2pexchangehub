@@ -21,11 +21,13 @@ import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
+import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.vaadin.viritin.label.MLabel;
 import org.vaadin.viritin.layouts.MVerticalLayout;
 
 import net.p2pexchangehub.client.web.components.OfferGrid;
 import net.p2pexchangehub.client.web.security.UserIdentity;
+import net.p2pexchangehub.core.api.user.contact.RequestContactValidationCodeCommand;
 import net.p2pexchangehub.view.domain.Offer;
 import net.p2pexchangehub.view.domain.UserAccount;
 import net.p2pexchangehub.view.domain.UserAccountContact;
@@ -39,6 +41,9 @@ public class MyDashboardView extends HorizontalLayout implements View {
 
     public static final String VIEW_NAME = "MyDashboarView";
 
+    @Inject
+    private CommandGateway commandGateway;
+        
     @Inject
     private UserIdentity userIdentity;
 
@@ -66,6 +71,9 @@ public class MyDashboardView extends HorizontalLayout implements View {
         overviewGrid.addComponent(new Label("Payments code"));
         overviewGrid.addComponent(new Label(userAccount.getPaymentsCode()));
 
+        overviewGrid.addComponent(new Label("Name"));
+        overviewGrid.addComponent(new Label(userAccount.getName()));
+        
         Panel panel = new Panel("Basic information");
         panel.setIcon(ThemeResources.USER);
         panel.setContent(overviewGrid);
@@ -131,7 +139,7 @@ public class MyDashboardView extends HorizontalLayout implements View {
                 emailContactwGrid.addComponent(new Label(mc.getValue()));
                 Component mobileContactAction = null;
                 if (!mc.isValidated()) {
-                    mobileContactAction = new Button("Validate");
+                    mobileContactAction = new Button("Validate", c-> {commandGateway.send(new RequestContactValidationCodeCommand(userAccount.getId(), mc.getId()));});
                 } else {
                     MenuBar actionsMenuBar = new MenuBar();
                     MenuItem topItem = actionsMenuBar.addItem("Edit", null);
@@ -153,7 +161,7 @@ public class MyDashboardView extends HorizontalLayout implements View {
                mobileContactwGrid.addComponent(new Label(mc.getValue()));
                Component mobileContactAction = null;
                if (!mc.isValidated()) {
-                   mobileContactAction = new Button("Validate");
+                   mobileContactAction = new Button("Validate", c-> {commandGateway.send(new RequestContactValidationCodeCommand(userAccount.getId(), mc.getId()));});
                } else {
                    MenuBar actionsMenuBar = new MenuBar();
                    MenuItem topItem = actionsMenuBar.addItem("Edit", null);

@@ -6,13 +6,14 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
+import javax.mail.MessagingException;
 
 import org.apache.commons.io.output.StringBuilderWriter;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.eventhandling.annotation.EventHandler;
-import org.springframework.mail.MailSender;
-import org.springframework.mail.SimpleMailMessage;
+import org.slf4j.Logger;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.mail.javamail.MimeMessageHelper;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -41,6 +42,9 @@ public class NotificationSender extends AbstractIgnoreReplayEventHandler {
     
     private Configuration freemarkerConfig;
 
+    @Inject
+    private Logger logger;
+    
     @Inject
     private CommandGateway gateway;
     
@@ -92,8 +96,6 @@ public class NotificationSender extends AbstractIgnoreReplayEventHandler {
         javaMailSender.setHost(configurationRepository.getValueString(CONFIG_SMTP_SERVER_HOST));
         javaMailSender.setPort(configurationRepository.getValueInt(CONFIG_SMTP_SERVER_PORT));
         
-        MailSender mailSender = javaMailSender;
-        
         StringBuilderWriter subjectWriter = new StringBuilderWriter();
         new Template("subject_template", emailTemplate.getSubject(), freemarkerConfig).process(templateData, subjectWriter);
         
@@ -101,13 +103,17 @@ public class NotificationSender extends AbstractIgnoreReplayEventHandler {
         new Template("body_template", emailTemplate.getText(), freemarkerConfig).process(templateData, bodyWriter);
         
         
-        SimpleMailMessage mailMessage = new SimpleMailMessage();
-        mailMessage.setFrom(configurationRepository.getValueString(CONFIG_EMAIL_SENDER_DEFAULT));
-        mailMessage.setSubject(subjectWriter.toString());
-        mailMessage.setText(bodyWriter.toString());
-        mailMessage.setTo(contact.getValue());
+        try {
+            MimeMessageHelper messageHelper = new MimeMessageHelper(javaMailSender.createMimeMessage());
+            messageHelper.setFrom(configurationRepository.getValueString(CONFIG_EMAIL_SENDER_DEFAULT));
+            messageHelper.setSubject(subjectWriter.toString());
+            messageHelper.setText(bodyWriter.toString(), true);
+            messageHelper.setTo(contact.getValue());
+            javaMailSender.send(messageHelper.getMimeMessage());
+        } catch (MessagingException e) {
+            logger.error("Error sending email notification", e);
+        }
         
-        mailSender.send(mailMessage);
     }
     
 }

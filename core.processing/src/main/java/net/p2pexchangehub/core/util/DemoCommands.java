@@ -18,6 +18,8 @@ import net.p2pexchangehub.core.api.external.bank.CreateExternalBankAccountComman
 import net.p2pexchangehub.core.api.external.bank.RequestExternalBankSynchronizationCommand;
 import net.p2pexchangehub.core.api.external.bank.SetExternalBankAccountActiveCommand;
 import net.p2pexchangehub.core.api.external.bank.SetExternalBankAccountCredentialsCommand;
+import net.p2pexchangehub.core.api.notification.CreateNotificationTemplateCommand;
+import net.p2pexchangehub.core.api.notification.UpdateEmailTemplateTextCommand;
 import net.p2pexchangehub.core.api.user.AddUserAccountRolesCommand;
 import net.p2pexchangehub.core.api.user.CreateUserAccountCommand;
 import net.p2pexchangehub.core.api.user.EnableUserAccountCommand;
@@ -53,6 +55,23 @@ public class DemoCommands {
         gateway.send(new CreateConfigurationItemCommand(NotificationSender.CONFIG_SMTP_SERVER_HOST, "192.168.56.101"));
         gateway.send(new CreateConfigurationItemCommand(NotificationSender.CONFIG_SMTP_SERVER_PORT, "1025"));
         gateway.send(new CreateConfigurationItemCommand(NotificationSender.CONFIG_EMAIL_SENDER_DEFAULT, "noreply@p2pexchangehub.net"));
+
+        gateway.send(new CreateNotificationTemplateCommand("net.p2pexchangehub.core.api.user.contact.ContactDetailValidationRequestedEvent"));
+        gateway.send(new UpdateEmailTemplateTextCommand(
+                "net.p2pexchangehub.core.api.user.contact.ContactDetailValidationRequestedEvent",
+                "EN",
+                "Confirmation of email address",
+                "<html>\n" + 
+                        "<body>\n"+
+                        "<p>Dear ${UserAccount.username}</p>\n"+
+                        "<p>it's necessary to confirm your email address <b>${UserAccountContact.value}</b>. To do that you need to click on the following link to "+
+                        "<a href=\"http://localhost:8080/core.processing-0.0.1-SNAPSHOT/client/#!EmailConfirmationView/${TEMPLATE_SOURCE_EVENT.validationCode}\">validate this email address</a>.</p>\n"+
+                        "<p>This code expires ${TEMPLATE_SOURCE_EVENT.validationCodeExpiration?datetime}.</p>\n" +
+                        "<p>Best Regards</p>\n" +
+                        "</body>\n"+
+                        "</html>"
+                ));
+        
         
         
         String acc00Id = "acc0-0";
@@ -88,16 +107,16 @@ public class DemoCommands {
         String userAccountId1 = "usac1";
         gateway.send(new CreateUserAccountCommand(userAccountId1 , "username1"));
         gateway.send(new SetUserAccountPasswordCommand(userAccountId1 , "password1"));
-        gateway.send(new CreateUserBankAccountCommand(userAccountId1, "CZK", "2-0"));
-        gateway.send(new CreateUserBankAccountCommand(userAccountId1, "NZD", "2-1"));
-        gateway.send(new CreateUserBankAccountCommand(userAccountId1, "CZK", "2-2"));
-        gateway.send(new CreateUserBankAccountCommand(userAccountId1, "NZD", "2-3"));
+        gateway.send(new CreateUserBankAccountCommand(userAccountId1, "CZE", "CZK", "2-0", "accountOwnerName"));
+        gateway.send(new CreateUserBankAccountCommand(userAccountId1, "NZL", "NZD", "2-1", "accountOwnerName"));
+        gateway.send(new CreateUserBankAccountCommand(userAccountId1, "CZE", "CZK", "2-2", "accountOwnerName"));
+        gateway.send(new CreateUserBankAccountCommand(userAccountId1, "NZL", "NZD", "2-3", "accountOwnerName"));
 
         String userAccountId2 = "usac2";
         gateway.send(new CreateUserAccountCommand(userAccountId2 , "usernameIsHere"));
         gateway.send(new SetUserAccountPasswordCommand(userAccountId2 , "password2"));
-        gateway.send(new CreateUserBankAccountCommand(userAccountId2, "CZK", "2-0"));
-        gateway.send(new CreateUserBankAccountCommand(userAccountId2, "NZD", "2-1"));
+        gateway.send(new CreateUserBankAccountCommand(userAccountId2, "CZE", "CZK", "2-0", "accountOwnerName"));
+        gateway.send(new CreateUserBankAccountCommand(userAccountId2, "NZL", "NZD", "2-1", "accountOwnerName"));
         
         
 //        gateway.send(new CreateOfferCommand("offerId", userAccountId1, "CZK", BigDecimal.ZERO, BigDecimal.TEN, "NZD", new BigDecimal("0.1333")));

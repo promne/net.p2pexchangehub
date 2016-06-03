@@ -19,6 +19,9 @@ public class UserAccount {
     private String username;
     public static final String PROPERTY_USERNAME = "username";
 
+    private String name;
+    public static final String PROPERTY_NAME = "name";
+
     private String passwordHash;
     
     private String paymentsCode;
@@ -71,6 +74,10 @@ public class UserAccount {
         return bankAccounts;
     }
 
+    public Optional<UserBankAccount> getBankAccount(String id) {
+        return bankAccounts.stream().filter(c -> c.getId().equals(id)).findAny();        
+    }
+    
     public void setBankAccounts(Set<UserBankAccount> bankAccounts) {
         this.bankAccounts = bankAccounts;
     }
@@ -125,6 +132,14 @@ public class UserAccount {
 
     public void setPaymentsCode(String paymentsCode) {
         this.paymentsCode = paymentsCode;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
 }

@@ -114,8 +114,8 @@ public class UserAccount {
         return contacts.stream().filter(c -> c.getType() == type).collect(Collectors.toSet());
     }
 
-    public Optional<UserAccountContact> getContact(String id) {
-        return contacts.stream().filter(c -> c.getId().equals(id)).findFirst();        
+    public Optional<UserAccountContact> getContact(String value) {
+        return contacts.stream().filter(c -> c.getValue().equals(value)).findFirst();        
     }
     
     public Optional<UserAccountContact> getDefaultContact(Type type) {

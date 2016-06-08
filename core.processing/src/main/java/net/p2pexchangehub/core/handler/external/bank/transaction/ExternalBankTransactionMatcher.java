@@ -35,7 +35,7 @@ public class ExternalBankTransactionMatcher {
             for (int i=0; i<=referenceInfo.length()-paymentCodeLength; i++) {
                 String paymentsCodeCandidate = referenceInfo.substring(i, i+paymentCodeLength).replaceAll("\\s", "").trim().toUpperCase();
                 if (paymentsCodeCandidate.length()==paymentCodeLength) {
-                    Optional<UserAccount> candidate = userAccountViewRepository.findOneByPaymentsCode(paymentsCodeCandidate);
+                    Optional<UserAccount> candidate = userAccountViewRepository.findOneByPaymentsCodeIgnoreCase(paymentsCodeCandidate);
                     if (candidate.isPresent()) {
                         userAccountCandidates.add(candidate.get().getId());
                     }

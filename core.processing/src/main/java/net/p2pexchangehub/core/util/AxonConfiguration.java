@@ -63,14 +63,13 @@ public class AxonConfiguration {
 
     @Produces
     @Singleton
-    public MongoEventStore defaultMongoEventStore() throws UnknownHostException {
-        MongoClient mongo = new MongoClient("192.168.56.101");
+    public MongoEventStore defaultMongoEventStore(MongoClient mongoClient) throws UnknownHostException {
         char[] password = null;
         String userName = null;
         String snapshotEventsCollectionName = "snapshotevents";
         String domainEventsCollectionName = "domainevents";
         String databaseName = "exchange";
-        MongoTemplate mongoTemplate = new DefaultMongoTemplate(mongo, databaseName, domainEventsCollectionName, snapshotEventsCollectionName, userName, password);
+        MongoTemplate mongoTemplate = new DefaultMongoTemplate(mongoClient, databaseName, domainEventsCollectionName, snapshotEventsCollectionName, userName, password);
         return new MongoEventStore(mongoTemplate);        
     }
     

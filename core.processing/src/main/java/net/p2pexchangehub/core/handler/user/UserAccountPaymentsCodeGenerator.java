@@ -25,7 +25,7 @@ public class UserAccountPaymentsCodeGenerator extends AbstractIgnoreReplayEventH
     public void handle(UserAccountCreatedEvent event) {
         if (isLive()) {
             String code = CodeGenerator.generateCode(CODE_LENGTH);
-            while (repository.findOneByPaymentsCode(code).isPresent()) {
+            while (repository.findOneByPaymentsCodeIgnoreCase(code).isPresent()) {
                 code = CodeGenerator.generateCode(CODE_LENGTH);
             }        
             gateway.send(new ChangeUserAccountPaymentsCode(event.getUserAccountId(), code));            

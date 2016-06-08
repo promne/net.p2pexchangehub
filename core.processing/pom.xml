@@ -258,6 +258,11 @@
 			<artifactId>messagebox</artifactId>
 			<version>3.0.15</version>
 		</dependency>
+		<dependency>
+			<groupId>org.vaadin.addons</groupId>
+			<artifactId>wizards-for-vaadin</artifactId>
+			<version>1.1.1</version>
+		</dependency>
 
 		<!-- rest -->
 		<dependency>

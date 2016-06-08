@@ -142,7 +142,7 @@ public class UserAccountView extends VerticalLayout implements View {
         for (UserAccountContact contact : userAccount.getContacts()) {
             contactsGrid.addComponent(new Label(contact.getValue()));
             if (!contact.isValidated()) {
-                contactsGrid.addComponent(new Button("Send code", c-> {gateway.send(new RequestContactValidationCodeCommand(userAccount.getId(), contact.getId()));}));
+                contactsGrid.addComponent(new Button("Send code", c-> {gateway.send(new RequestContactValidationCodeCommand(userAccount.getId(), contact.getValue()));}));
             } else {
                 contactsGrid.addComponent(new Label("Valid"));                
             }

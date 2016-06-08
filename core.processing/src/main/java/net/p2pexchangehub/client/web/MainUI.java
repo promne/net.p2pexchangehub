@@ -19,10 +19,13 @@ import com.vaadin.ui.VerticalLayout;
 
 import java.util.Optional;
 
+import javax.enterprise.inject.spi.CDI;
 import javax.inject.Inject;
 
 import org.axonframework.eventhandling.EventBus;
 import org.axonframework.eventhandling.replay.ReplayingCluster;
+import org.vaadin.viritin.button.MButton;
+import org.vaadin.viritin.button.PrimaryButton;
 import org.vaadin.viritin.fields.MPasswordField;
 import org.vaadin.viritin.fields.MTextField;
 
@@ -43,7 +46,7 @@ import net.p2pexchangehub.view.domain.UserAccount;
 @CDIUI("")
 @URLMapping("client/*")
 @Theme(value = "mytheme")
-@Widgetset("george.test.exchange.client.MyAppWidgetset")
+@Widgetset(ThemeResources.WIDGETSET_NAME)
 public class MainUI extends UI {
 
     @Inject
@@ -66,10 +69,10 @@ public class MainUI extends UI {
         if (userIdentity.isLoggeedIn()) {
             loadProtectedResources(request);
         } else {
-            MTextField usernameField = new MTextField("Username");
+            MTextField usernameField = new MTextField("Username").withFullWidth();
             usernameField.setMaxLength(50);
 
-            MPasswordField passwordField = new MPasswordField("Password");
+            MPasswordField passwordField = new MPasswordField("Password").withFullWidth();
             passwordField.setMaxLength(50);
             
             final MessageBox[] messageBox = new MessageBox[1];
@@ -77,8 +80,8 @@ public class MainUI extends UI {
             .create()
             .withCaption("Login")
             .withMessage(new VerticalLayout(usernameField, passwordField))
-            .withOkButton(() -> {
-                Optional<UserAccount> user = authenticationService.authenticate(usernameField.getValue(), passwordField.getValue(), null);
+            .withButton(new PrimaryButton(ThemeResources.UNLOCK, "Login", c -> {
+                Optional<UserAccount> user = authenticationService.authenticate(usernameField.getValue(), passwordField.getValue());
                 if (user.isPresent()) {
                     userIdentity.setUserAccountId(user.get().getId());
                     loadProtectedResources(request);
@@ -87,7 +90,10 @@ public class MainUI extends UI {
                     passwordField.clear();
                     Notification.show("Username and password doesn't match", Type.ERROR_MESSAGE);
                 }
-            }, ButtonOption.closeOnClick(false));
+            }), ButtonOption.closeOnClick(false))
+            .withButton(new MButton(ThemeResources.USER_ADD, "Register", c-> {
+                UI.getCurrent().addWindow(CDI.current().select(RegistrationWizard.class).get());
+            }), ButtonOption.closeOnClick(false));
             messageBox[0].open();                                
             
         }

@@ -4,8 +4,9 @@ import java.util.Optional;
 
 import javax.inject.Inject;
 
-import org.mindrot.jbcrypt.BCrypt;
+import org.axonframework.commandhandling.gateway.CommandGateway;
 
+import net.p2pexchangehub.core.api.user.AuthenticateUserAccountCommand;
 import net.p2pexchangehub.view.domain.UserAccount;
 import net.p2pexchangehub.view.repository.UserAccountRepository;
 
@@ -14,13 +15,14 @@ public class AuthenticationService {
     @Inject
     private UserAccountRepository userAccountRepository;
     
-    public Optional<UserAccount> authenticate(String username, String password, Object metadata) {
-        //FIXME: turn into call to aggregate!! With additional info like ip etc.
-        Optional<UserAccount> userAccount = userAccountRepository.findOneByUsername(username);
-        if (userAccount.isPresent() && userAccount.get().isEnabled()) {
-            if (BCrypt.checkpw(password, userAccount.get().getPasswordHash())) {
-                return userAccount;
-            }            
+    @Inject
+    private CommandGateway commandGateway;
+    
+    public Optional<UserAccount> authenticate(String username, String password) {
+        String authenticatedUserAccountId = commandGateway.sendAndWait(new AuthenticateUserAccountCommand(username, password));
+        if (authenticatedUserAccountId != null) {
+            UserAccount userAccount = userAccountRepository.findOne(authenticatedUserAccountId);
+            return Optional.of(userAccount);
         }
         return Optional.empty();
     }

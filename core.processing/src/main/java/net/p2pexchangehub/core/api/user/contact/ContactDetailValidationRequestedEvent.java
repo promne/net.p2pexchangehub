@@ -6,16 +6,16 @@ public class ContactDetailValidationRequestedEvent {
 
     private final String userAccountId;
 
-    private final String contactId;
+    private final String contactValue;
 
     private final String validationCode;
 
     private final Date validationCodeExpiration;
 
-    public ContactDetailValidationRequestedEvent(String userAccountId, String contactId, String validationCode, Date validationCodeExpiration) {
+    public ContactDetailValidationRequestedEvent(String userAccountId, String contactValue, String validationCode, Date validationCodeExpiration) {
         super();
         this.userAccountId = userAccountId;
-        this.contactId = contactId;
+        this.contactValue = contactValue;
         this.validationCode = validationCode;
         this.validationCodeExpiration = validationCodeExpiration;
     }
@@ -24,8 +24,8 @@ public class ContactDetailValidationRequestedEvent {
         return userAccountId;
     }
 
-    public String getContactId() {
-        return contactId;
+    public String getContactValue() {
+        return contactValue;
     }
 
     public String getValidationCode() {

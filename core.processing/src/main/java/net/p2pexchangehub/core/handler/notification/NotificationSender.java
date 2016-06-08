@@ -76,7 +76,7 @@ public class NotificationSender extends AbstractIgnoreReplayEventHandler {
                 
                 if (event.getNotificationTemplateId().equals(ContactDetailValidationRequestedEvent.class.getCanonicalName())) {
                     ContactDetailValidationRequestedEvent srcEvent = (ContactDetailValidationRequestedEvent) event.getTemplateData().get(NotificationRequester.TEMPLATE_SOURCE_EVENT);
-                    UserAccountContact contact = findOne.getContact(srcEvent.getContactId()).get();
+                    UserAccountContact contact = findOne.getContact(srcEvent.getContactValue()).get();
                     
                     templateData.put(UserAccountContact.class.getSimpleName(), contact);
                     

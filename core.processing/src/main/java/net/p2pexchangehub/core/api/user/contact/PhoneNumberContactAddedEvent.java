@@ -4,8 +4,8 @@ public class PhoneNumberContactAddedEvent extends ContactDetailAddedEvent {
 
     private final String number;
 
-    public PhoneNumberContactAddedEvent(String userAccountId, String contactDetailId, String number) {
-        super(userAccountId, contactDetailId);
+    public PhoneNumberContactAddedEvent(String userAccountId, String number) {
+        super(userAccountId);
         this.number = number;
     }
 

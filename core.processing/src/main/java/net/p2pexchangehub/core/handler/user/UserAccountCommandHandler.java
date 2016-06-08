@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 
 import net.p2pexchangehub.core.api._domain.CurrencyAmount;
 import net.p2pexchangehub.core.api.user.AddUserAccountRolesCommand;
+import net.p2pexchangehub.core.api.user.AuthenticateUserAccountCommand;
 import net.p2pexchangehub.core.api.user.ChangeUserAccountNameCommand;
 import net.p2pexchangehub.core.api.user.ChangeUserAccountPaymentsCode;
 import net.p2pexchangehub.core.api.user.ConfirmAccountDebitReservationCommand;
@@ -56,7 +57,7 @@ public class UserAccountCommandHandler {
     
     @CommandHandler
     public void handleCreateUserAccount(CreateUserAccountCommand command, MetaData metadata) {
-        Optional<net.p2pexchangehub.view.domain.UserAccount> existingUserAccount = userAccountRepository.findOneByUsername(command.getUsername());
+        Optional<net.p2pexchangehub.view.domain.UserAccount> existingUserAccount = userAccountRepository.findOneByUsernameIgnoreCase(command.getUsername());
         if (existingUserAccount.isPresent()) {
             log.debug("Can't create user {} - this username already exists", command.getUsername());
         } else {
@@ -119,7 +120,7 @@ public class UserAccountCommandHandler {
     @CommandHandler
     public void handleRequestValidationCode(RequestContactValidationCodeCommand command, MetaData metadata) {
         UserAccount userAccount = repository.load(command.getUserAccountId());
-        Type contactType = userAccount.getContactDetail(command.getContactId()).getType();
+        Type contactType = userAccount.getContactDetail(command.getContactValue()).getType();
 
         String validationCode;
         Date expiration;
@@ -135,7 +136,7 @@ public class UserAccountCommandHandler {
             default:
                 throw new IllegalStateException("Unable to generate validation code for " + contactType);
         }
-        userAccount.requestValidationCode(command.getContactId(), validationCode, expiration, metadata);
+        userAccount.requestValidationCode(command.getContactValue(), validationCode, expiration, metadata);
     }
     
     @CommandHandler
@@ -182,6 +183,18 @@ public class UserAccountCommandHandler {
     @CommandHandler
     public void handleSendNotification(RequestSendNotificationToUserAccountCommand command, MetaData metadata) {
         repository.load(command.getUserAccountId()).requestNofitication(command.getNotificationTemplateId(), command.getTemplateData(), metadata);        
+    }
+
+    @CommandHandler
+    public String handleAuthenticate(AuthenticateUserAccountCommand command, MetaData metadata) {
+        Optional<net.p2pexchangehub.view.domain.UserAccount> userAccountRead = userAccountRepository.findOneByUsernameIgnoreCase(command.getUsername());
+        if (userAccountRead.isPresent()) {
+            String userAccountId = userAccountRead.get().getId();
+            if (repository.load(userAccountId).authenticate(command.getPassword(), metadata)) {
+                return userAccountId;
+            }
+        }
+        return null;
     }
     
 }

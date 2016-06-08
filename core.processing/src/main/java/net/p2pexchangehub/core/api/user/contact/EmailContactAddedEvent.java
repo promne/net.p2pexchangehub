@@ -4,8 +4,8 @@ public class EmailContactAddedEvent extends ContactDetailAddedEvent {
 
     private final String emailAddress;
 
-    public EmailContactAddedEvent(String userAccountId, String contactDetailId, String emailAddress) {
-        super(userAccountId, contactDetailId);
+    public EmailContactAddedEvent(String userAccountId, String emailAddress) {
+        super(userAccountId);
         this.emailAddress = emailAddress;
     }
 

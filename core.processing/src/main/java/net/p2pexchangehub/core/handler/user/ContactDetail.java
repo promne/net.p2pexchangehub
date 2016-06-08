@@ -9,8 +9,6 @@ public class ContactDetail {
         PHONE
     }
 
-    private final String id;
-    
     private final Type type;
     
     private final String value;
@@ -21,15 +19,10 @@ public class ContactDetail {
     
     private Date validationCodeExpiration;
 
-    public ContactDetail(String id, Type type, String value) {
+    public ContactDetail(Type type, String value) {
         super();
-        this.id = id;
         this.type = type;
         this.value = value;
-    }
-
-    public String getId() {
-        return id;
     }
 
     public Type getType() {

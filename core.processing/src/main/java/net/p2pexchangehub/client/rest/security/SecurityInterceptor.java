@@ -106,7 +106,7 @@ public class SecurityInterceptor implements javax.ws.rs.container.ContainerReque
         if (usernameAndPassword.length!=2) {
             return Optional.empty();
         }
-        return authenticationService.authenticate(usernameAndPassword[0], usernameAndPassword[1], null);
+        return authenticationService.authenticate(usernameAndPassword[0], usernameAndPassword[1]);
     }
     
 

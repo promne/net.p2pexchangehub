@@ -141,9 +141,9 @@ public class UserAccountListener implements ReplayAware {
         
         UserAccountContact newContact;
         if (PhoneNumberContactAddedEvent.class.equals(event.getClass())) {
-            newContact = new UserAccountContact(event.getContactDetailId(), ((PhoneNumberContactAddedEvent)event).getNumber(), Type.PHONE);
+            newContact = new UserAccountContact(((PhoneNumberContactAddedEvent)event).getNumber(), Type.PHONE);
         } else if (EmailContactAddedEvent.class.equals(event.getClass())) {
-            newContact = new UserAccountContact(event.getContactDetailId(), ((EmailContactAddedEvent)event).getEmailAddress(), Type.EMAIL);
+            newContact = new UserAccountContact(((EmailContactAddedEvent)event).getEmailAddress(), Type.EMAIL);
         } else {
             throw new IllegalStateException("Unable to handle " + event.getClass());
         }
@@ -154,7 +154,7 @@ public class UserAccountListener implements ReplayAware {
     @EventHandler
     public void handle(ContactDetailValidatedEvent event) {
         UserAccount userAccount = repository.findOne(event.getUserAccountId());
-        userAccount.getContacts().stream().filter(uac -> uac.getId().equals(event.getContactId())).forEach(uac -> uac.setValidated(true));
+        userAccount.getContacts().stream().filter(uac -> uac.getValue().equals(event.getContactValue())).forEach(uac -> uac.setValidated(true));
         repository.save(userAccount);
     }
 

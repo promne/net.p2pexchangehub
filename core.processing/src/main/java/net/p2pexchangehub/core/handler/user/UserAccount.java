@@ -16,6 +16,7 @@ import org.axonframework.domain.MetaData;
 import org.axonframework.eventhandling.annotation.EventHandler;
 import org.axonframework.eventsourcing.annotation.AbstractAnnotatedAggregateRoot;
 import org.axonframework.eventsourcing.annotation.AggregateIdentifier;
+import org.mindrot.jbcrypt.BCrypt;
 
 import george.test.exchange.core.domain.UserAccountRole;
 import george.test.exchange.core.domain.UserAccountState;
@@ -29,6 +30,8 @@ import net.p2pexchangehub.core.api.user.UserAccountDebitForExternalBankAccountRe
 import net.p2pexchangehub.core.api.user.UserAccountDebitForOfferReservedEvent;
 import net.p2pexchangehub.core.api.user.UserAccountNameChangedEvent;
 import net.p2pexchangehub.core.api.user.UserAccountNotificationSendRequestedEvent;
+import net.p2pexchangehub.core.api.user.UserAccountPasswordAuthenticationFailedEvent;
+import net.p2pexchangehub.core.api.user.UserAccountPasswordAuthenticationSucceededEvent;
 import net.p2pexchangehub.core.api.user.UserAccountPasswordChangedEvent;
 import net.p2pexchangehub.core.api.user.UserAccountPaymentsCodeChangedEvent;
 import net.p2pexchangehub.core.api.user.UserAccountRolesAddedEvent;
@@ -62,6 +65,8 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
     private UserAccountState state;
 
     private String paymentsCode;
+
+    private String passwordHash;
     
     public UserAccount() {
         super();
@@ -84,8 +89,8 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
         return Optional.ofNullable(bankAccounts.get(id));
     }
     
-    public ContactDetail getContactDetail(String contactId) {
-        return contactDetails.get(contactId);
+    public ContactDetail getContactDetail(String contactValue) {
+        return contactDetails.get(contactValue);
     }
     
     public String getPaymentsCode() {
@@ -157,7 +162,7 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
 
     @EventHandler
     private void handle(UserAccountPasswordChangedEvent event) {
-        //nothing
+        passwordHash = event.getNewPasswordHash();
     }
 
     public void enable(MetaData metadata) {
@@ -199,12 +204,12 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
         if (contactDetails.values().stream().anyMatch(cd -> cd.getType()==Type.EMAIL)) {
             throw new IllegalStateException("User account " + id + " already has an email");
         }
-        apply(new EmailContactAddedEvent(id, UUID.randomUUID().toString(), emailAddress), metadata);
+        apply(new EmailContactAddedEvent(id, emailAddress), metadata);
     }
     
     @EventHandler
     private void handle(EmailContactAddedEvent event) {
-        contactDetails.put(event.getContactDetailId(), new ContactDetail(event.getContactDetailId(), ContactDetail.Type.EMAIL, event.getEmailAddress()));
+        contactDetails.put(event.getEmailAddress(), new ContactDetail(ContactDetail.Type.EMAIL, event.getEmailAddress()));
     }
 
     public void validateContact(String validatingCode, MetaData metadata) {
@@ -218,46 +223,46 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
         }
         if (!matchingContacts.isEmpty()) {
             ContactDetail cd = matchingContacts.get(0);
-            apply(new ContactDetailValidatedEvent(id, cd.getId()), metadata);            
+            apply(new ContactDetailValidatedEvent(id, cd.getValue()), metadata);            
         }
     }
 
     @EventHandler
     private void handle(ContactDetailValidatedEvent event) {
-        contactDetails.get(event.getContactId()).setConfirmed(true);
+        contactDetails.get(event.getContactValue()).setConfirmed(true);
     }
     
-    public void removeContact(String contactId, MetaData metadata) {
-        apply(new ContactDetailRemovedEvent(id, contactId), metadata);
+    public void removeContact(String contactValue, MetaData metadata) {
+        apply(new ContactDetailRemovedEvent(id, contactValue), metadata);
     }
 
     @EventHandler
     private void handle(ContactDetailRemovedEvent event) {
-        contactDetails.remove(event.getContactId());
+        contactDetails.remove(event.getContactValue());
     }
     
     public void addPhoneNumberContact(String phoneNumber, MetaData metadata) {
         if (contactDetails.values().stream().anyMatch(cd -> cd.getType()==Type.PHONE)) {
             throw new IllegalStateException("User account " + id + " already has a phone number");
         }
-        apply(new PhoneNumberContactAddedEvent(id, UUID.randomUUID().toString(), phoneNumber), metadata);
+        apply(new PhoneNumberContactAddedEvent(id, phoneNumber), metadata);
     }
 
     @EventHandler
     private void handle(PhoneNumberContactAddedEvent event) {
-        contactDetails.put(event.getContactDetailId(), new ContactDetail(event.getContactDetailId(), ContactDetail.Type.PHONE, event.getNumber()));        
+        contactDetails.put(event.getNumber(), new ContactDetail(ContactDetail.Type.PHONE, event.getNumber()));        
     }
 
-    public void requestValidationCode(String contactId, String validationCode, Date validationCodeExpiration, MetaData metadata) {
-        if (!contactDetails.containsKey(contactId)) {
-            throw new IllegalStateException("User account " + id + " doesn't have contact " + contactId);
+    public void requestValidationCode(String contactValue, String validationCode, Date validationCodeExpiration, MetaData metadata) {
+        if (!contactDetails.containsKey(contactValue)) {
+            throw new IllegalStateException("User account " + id + " doesn't have contact " + contactValue);
         }
-        apply(new ContactDetailValidationRequestedEvent(id, contactId, validationCode, validationCodeExpiration), metadata);
+        apply(new ContactDetailValidationRequestedEvent(id, contactValue, validationCode, validationCodeExpiration), metadata);
     }
 
     @EventHandler
     private void handle(ContactDetailValidationRequestedEvent event) {
-        ContactDetail contactDetail = contactDetails.get(event.getContactId());
+        ContactDetail contactDetail = contactDetails.get(event.getContactValue());
         contactDetail.setValidationCode(event.getValidationCode());
         contactDetail.setValidationCodeExpiration(event.getValidationCodeExpiration());
     }
@@ -341,6 +346,26 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
     
     @EventHandler
     private void handle(UserAccountNameChangedEvent event) {
+        // nothing
+    }
+
+    public Boolean authenticate(String password, MetaData metadata) {
+        if (BCrypt.checkpw(password, passwordHash)) {
+            apply(new UserAccountPasswordAuthenticationSucceededEvent(id), metadata);
+            return Boolean.TRUE; 
+        } else {
+            apply(new UserAccountPasswordAuthenticationFailedEvent(id), metadata);            
+            return Boolean.FALSE; 
+        }        
+    }
+
+    @EventHandler
+    private void handle(UserAccountPasswordAuthenticationSucceededEvent event) {
+        // nothing
+    }
+    
+    @EventHandler
+    private void handle(UserAccountPasswordAuthenticationFailedEvent event) {
         // nothing
     }
     

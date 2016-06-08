@@ -139,7 +139,7 @@ public class MyDashboardView extends HorizontalLayout implements View {
                 emailContactwGrid.addComponent(new Label(mc.getValue()));
                 Component mobileContactAction = null;
                 if (!mc.isValidated()) {
-                    mobileContactAction = new Button("Validate", c-> {commandGateway.send(new RequestContactValidationCodeCommand(userAccount.getId(), mc.getId()));});
+                    mobileContactAction = new Button("Validate", c-> {commandGateway.send(new RequestContactValidationCodeCommand(userAccount.getId(), mc.getValue()));});
                 } else {
                     MenuBar actionsMenuBar = new MenuBar();
                     MenuItem topItem = actionsMenuBar.addItem("Edit", null);
@@ -161,7 +161,7 @@ public class MyDashboardView extends HorizontalLayout implements View {
                mobileContactwGrid.addComponent(new Label(mc.getValue()));
                Component mobileContactAction = null;
                if (!mc.isValidated()) {
-                   mobileContactAction = new Button("Validate", c-> {commandGateway.send(new RequestContactValidationCodeCommand(userAccount.getId(), mc.getId()));});
+                   mobileContactAction = new Button("Validate", c-> {commandGateway.send(new RequestContactValidationCodeCommand(userAccount.getId(), mc.getValue()));});
                } else {
                    MenuBar actionsMenuBar = new MenuBar();
                    MenuItem topItem = actionsMenuBar.addItem("Edit", null);

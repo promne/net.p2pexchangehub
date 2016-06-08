@@ -7,32 +7,21 @@ public class UserAccountContact {
         PHONE
     }
     
-    private String id;
-    public static final String PROPERTY_ID = "id";
-    
     private String value;
+    public static final String PROPERTY_VALUE = "value";
     
     private Type type;
     
     private boolean validated;
 
-    public UserAccountContact(String id, String value, Type type) {
+    public UserAccountContact(String value, Type type) {
         super();
-        this.id = id;
         this.value = value;
         this.type = type;
     }
 
     public UserAccountContact() {
         super();
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
     public String getValue() {

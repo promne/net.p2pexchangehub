@@ -4,6 +4,8 @@ import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Resource;
 
 public class ThemeResources {
+    
+    public static final String WIDGETSET_NAME = "george.test.exchange.client.MyAppWidgetset";
 
     public static final Resource USER = FontAwesome.USER;
     
@@ -18,5 +20,9 @@ public class ThemeResources {
     public static final Resource HOME = FontAwesome.HOME;
     
     public static final Resource SIGN_OUT = FontAwesome.SIGN_OUT;
+
+    public static final Resource UNLOCK = FontAwesome.UNLOCK;
+
+    public static final Resource USER_ADD = FontAwesome.USER_PLUS;
     
 }

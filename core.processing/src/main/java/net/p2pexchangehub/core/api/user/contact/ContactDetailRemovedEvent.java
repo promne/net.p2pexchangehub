@@ -4,20 +4,20 @@ public class ContactDetailRemovedEvent {
 
     private final String userAccountId;
 
-    private final String contactId;
+    private final String contactValue;
 
-    public ContactDetailRemovedEvent(String userAccountId, String contactId) {
+    public ContactDetailRemovedEvent(String userAccountId, String contactValue) {
         super();
         this.userAccountId = userAccountId;
-        this.contactId = contactId;
+        this.contactValue = contactValue;
     }
 
     public String getUserAccountId() {
         return userAccountId;
     }
 
-    public String getContactId() {
-        return contactId;
+    public String getContactValue() {
+        return contactValue;
     }
     
 }

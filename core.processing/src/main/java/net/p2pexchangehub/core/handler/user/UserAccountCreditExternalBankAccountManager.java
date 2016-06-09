@@ -28,10 +28,11 @@ public class UserAccountCreditExternalBankAccountManager extends AbstractIgnoreR
     @EventHandler
     public void reserveAmount(UserAccountDebitForExternalBankAccountReservedEvent event) {
         if (isLive()) {
+            //TODO: better external bank account matching
             Optional<BankAccount> externalBankAccount = bankAccountRepository.findByCurrencyAndActiveTrue(event.getAmount().getCurrencyCode()).stream()
                     .filter(a -> a.getBalance().compareTo(event.getAmount().getAmount())>=0).findAny();
             if (externalBankAccount.isPresent()) {
-                gateway.send(new RequestExternalBankTransactionCommand(externalBankAccount.get().getId(), event.getTransactionId(), event.getUserAccountId(), event.getUserBankAccountId(), event.getAmount()));
+                gateway.send(new RequestExternalBankTransactionCommand(externalBankAccount.get().getId(), event.getTransactionId(), event.getUserAccountId(), event.getBankAccountNumber(), event.getAmount()));
             } else {
                 gateway.send(new DiscardAccountDebitReservationCommand(event.getUserAccountId(), event.getTransactionId()));                
             }

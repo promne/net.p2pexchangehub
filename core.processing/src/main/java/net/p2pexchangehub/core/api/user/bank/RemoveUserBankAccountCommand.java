@@ -1,6 +1,6 @@
 package net.p2pexchangehub.core.api.user.bank;
 
-public class CreateUserBankAccountCommand {
+public class RemoveUserBankAccountCommand {
 
     private final String userAccountId;
 
@@ -8,14 +8,11 @@ public class CreateUserBankAccountCommand {
 
     private final String accountNumber;
 
-    private final String accountOwnerName;
-
-    public CreateUserBankAccountCommand(String userAccountId,String currency, String accountNumber, String accountOwnerName) {
+    public RemoveUserBankAccountCommand(String userAccountId, String currency, String accountNumber) {
         super();
         this.userAccountId = userAccountId;
         this.currency = currency;
         this.accountNumber = accountNumber;
-        this.accountOwnerName = accountOwnerName;
     }
 
     public String getUserAccountId() {
@@ -29,9 +26,5 @@ public class CreateUserBankAccountCommand {
     public String getAccountNumber() {
         return accountNumber;
     }
-
-    public String getAccountOwnerName() {
-        return accountOwnerName;
-    }
-
+    
 }

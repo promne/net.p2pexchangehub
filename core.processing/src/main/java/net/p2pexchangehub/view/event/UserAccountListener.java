@@ -22,6 +22,7 @@ import net.p2pexchangehub.core.api.user.UserAccountStateChangedEvent;
 import net.p2pexchangehub.core.api.user.UserIncomingTransactionMatchedEvent;
 import net.p2pexchangehub.core.api.user.bank.UserBankAccountCreatedEvent;
 import net.p2pexchangehub.core.api.user.bank.UserBankAccountOwnerNameChangedEvent;
+import net.p2pexchangehub.core.api.user.bank.UserBankAccountRemovedEvent;
 import net.p2pexchangehub.core.api.user.contact.ContactDetailAddedEvent;
 import net.p2pexchangehub.core.api.user.contact.ContactDetailValidatedEvent;
 import net.p2pexchangehub.core.api.user.contact.EmailContactAddedEvent;
@@ -47,22 +48,29 @@ public class UserAccountListener implements ReplayAware {
     }
     
     @EventHandler
-    public void handleUserIncomingTransactionMatched(UserIncomingTransactionMatchedEvent event) {
+    public void handle(UserIncomingTransactionMatchedEvent event) {
         updateWalletBalance(event.getUserAccountId(), event.getNewBalance());
     }
     
     @EventHandler
-    public void handleUserBankAccountCreatedEvent(UserBankAccountCreatedEvent event) {
+    public void handle(UserBankAccountCreatedEvent event) {
         UserAccount userAccount = repository.findOne(event.getUserAccountId());
-        UserBankAccount bankAccount = new UserBankAccount(event.getBankAccountId(), event.getCountry(), event.getCurrency(), event.getAccountNumber());
+        UserBankAccount bankAccount = new UserBankAccount(event.getCurrency(), event.getAccountNumber());
         userAccount.getBankAccounts().add(bankAccount);
         repository.save(userAccount);        
     }
 
     @EventHandler
-    public void handleUserBankAccountCreatedEvent(UserBankAccountOwnerNameChangedEvent event) {
+    public void handle(UserBankAccountOwnerNameChangedEvent event) {
         UserAccount userAccount = repository.findOne(event.getUserAccountId());
-        userAccount.getBankAccount(event.getBankAccountId()).get().setOwnerName(event.getOwnerName());
+        userAccount.getBankAccount(event.getCurrency(), event.getAccountNumber()).get().setOwnerName(event.getOwnerName());
+        repository.save(userAccount);        
+    }
+
+    @EventHandler
+    public void handle(UserBankAccountRemovedEvent event) {
+        UserAccount userAccount = repository.findOne(event.getUserAccountId());
+        userAccount.getBankAccounts().remove(new UserBankAccount(event.getCurrency(), event.getAccountNumber()));
         repository.save(userAccount);        
     }
     

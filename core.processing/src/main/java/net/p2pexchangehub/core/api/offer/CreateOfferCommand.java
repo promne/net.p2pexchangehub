@@ -16,10 +16,10 @@ public class CreateOfferCommand {
     
     private final String currencyRequested;
 
-    private final BigDecimal requestedExchangeRate;
+    private final String requestedExchangeRateExpression;
 
     public CreateOfferCommand(String offerId, String userAccountId, String currencyOffered, BigDecimal amountOfferedMin, BigDecimal amountOfferedMax, String currencyRequested,
-            BigDecimal requestedExchangeRate) {
+            String requestedExchangeRateExpression) {
         super();
         this.offerId = offerId;
         this.userAccountId = userAccountId;
@@ -27,7 +27,7 @@ public class CreateOfferCommand {
         this.amountOfferedMin = amountOfferedMin;
         this.amountOfferedMax = amountOfferedMax;
         this.currencyRequested = currencyRequested;
-        this.requestedExchangeRate = requestedExchangeRate;
+        this.requestedExchangeRateExpression = requestedExchangeRateExpression;
     }
 
     public String getOfferId() {
@@ -54,8 +54,8 @@ public class CreateOfferCommand {
         return currencyRequested;
     }
 
-    public BigDecimal getRequestedExchangeRate() {
-        return requestedExchangeRate;
+    public String getRequestedExchangeRateExpression() {
+        return requestedExchangeRateExpression;
     }
     
 }

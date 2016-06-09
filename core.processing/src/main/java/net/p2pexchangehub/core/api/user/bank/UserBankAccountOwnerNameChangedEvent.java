@@ -4,19 +4,26 @@ public class UserBankAccountOwnerNameChangedEvent {
 
     private final String userAccountId;
 
-    private final String bankAccountId;
+    private final String currency;
+    
+    private final String accountNumber;
     
     private final String ownerName;
 
-    public UserBankAccountOwnerNameChangedEvent(String userAccountId, String bankAccountId, String ownerName) {
+    public UserBankAccountOwnerNameChangedEvent(String userAccountId, String currency, String accountNumber, String ownerName) {
         super();
         this.userAccountId = userAccountId;
-        this.bankAccountId = bankAccountId;
+        this.currency = currency;
+        this.accountNumber = accountNumber;
         this.ownerName = ownerName;
     }
 
-    public String getBankAccountId() {
-        return bankAccountId;
+    public String getCurrency() {
+        return currency;
+    }
+
+    public String getAccountNumber() {
+        return accountNumber;
     }
 
     public String getUserAccountId() {

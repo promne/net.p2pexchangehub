@@ -11,14 +11,14 @@ public class SendMoneyToUserBankAccountCommand {
     
     private final String userAccountId;
     
-    private final String bankAccountId;
+    private final String bankAccountNumber;
     
     private final CurrencyAmount amount;
 
-    public SendMoneyToUserBankAccountCommand(String userAccountId, String bankAccountId, CurrencyAmount amount) {
+    public SendMoneyToUserBankAccountCommand(String userAccountId, String bankAccountNumber, CurrencyAmount amount) {
         super();
         this.userAccountId = userAccountId;
-        this.bankAccountId = bankAccountId;
+        this.bankAccountNumber = bankAccountNumber;
         this.amount = amount;
     }
 
@@ -30,8 +30,8 @@ public class SendMoneyToUserBankAccountCommand {
         return userAccountId;
     }
 
-    public String getBankAccountId() {
-        return bankAccountId;
+    public String getBankAccountNumber() {
+        return bankAccountNumber;
     }
 
     public CurrencyAmount getAmount() {

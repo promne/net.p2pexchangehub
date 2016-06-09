@@ -2,12 +2,6 @@ package net.p2pexchangehub.view.domain;
 
 public class UserBankAccount {
 
-    private String id;
-    public static final String PROPERTY_ID = "id";
-
-    private String country;
-    public static final String PROPERTY_COUNTRY = "country";
-    
     private String currency;
     public static final String PROPERTY_CURRENCY = "currency";
 
@@ -21,20 +15,10 @@ public class UserBankAccount {
         super();
     }
 
-    public UserBankAccount(String id, String country, String currency, String accountNumber) {
+    public UserBankAccount(String currency, String accountNumber) {
         super();
-        this.id = id;
-        this.country = country;
         this.currency = currency;
         this.accountNumber = accountNumber;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
     public String getCurrency() {
@@ -53,14 +37,6 @@ public class UserBankAccount {
         this.accountNumber = accountNumber;
     }
 
-    public String getCountry() {
-        return country;
-    }
-
-    public void setCountry(String country) {
-        this.country = country;
-    }
-
     public String getOwnerName() {
         return ownerName;
     }
@@ -73,7 +49,8 @@ public class UserBankAccount {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((id == null) ? 0 : id.hashCode());
+        result = prime * result + ((accountNumber == null) ? 0 : accountNumber.hashCode());
+        result = prime * result + ((currency == null) ? 0 : currency.hashCode());
         return result;
     }
 
@@ -86,10 +63,15 @@ public class UserBankAccount {
         if (getClass() != obj.getClass())
             return false;
         UserBankAccount other = (UserBankAccount) obj;
-        if (id == null) {
-            if (other.id != null)
+        if (accountNumber == null) {
+            if (other.accountNumber != null)
                 return false;
-        } else if (!id.equals(other.id))
+        } else if (!accountNumber.equals(other.accountNumber))
+            return false;
+        if (currency == null) {
+            if (other.currency != null)
+                return false;
+        } else if (!currency.equals(other.currency))
             return false;
         return true;
     }

@@ -6,6 +6,8 @@ import com.vaadin.data.util.GeneratedPropertyContainer;
 import com.vaadin.ui.Grid;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -42,6 +44,7 @@ public abstract class MongoGrid<T> extends Grid {
         this.clazz = clazz;
         contextMenu = new GridContextMenu(this);
         addStyleName(ThemeStyles.GRID_COLORED);
+        setColumnReorderingAllowed(true);
     }
     
     protected abstract Class<T> getItemClass();
@@ -77,6 +80,17 @@ public abstract class MongoGrid<T> extends Grid {
 
     public T getEntity(Object itemId) {
         return itemId==null ?  null : getMongoContainerDataSource().getItem(itemId).getBean();
+    }
+
+    @Override
+    public void setColumns(Object... propertyIds) {
+        super.setColumns(propertyIds);
+        getColumns().forEach(c -> c.setHidable(true));
+    }
+
+    public void setVisibleColumns(Object... propertyIds) {
+        Collection<Object> propIds = Arrays.asList(propertyIds);
+        getColumns().forEach(c -> c.setHidden(!propIds.contains(c.getPropertyId())));
     }
     
 }

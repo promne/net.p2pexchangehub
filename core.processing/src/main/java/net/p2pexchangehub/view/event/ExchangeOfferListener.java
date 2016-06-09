@@ -16,7 +16,9 @@ import net.p2pexchangehub.core.api.offer.OfferDebitConfirmedEvent;
 import net.p2pexchangehub.core.api.offer.OfferDebitRequestedEvent;
 import net.p2pexchangehub.core.api.offer.OfferExchangeCompletedEvent;
 import net.p2pexchangehub.core.api.offer.OfferMatchedEvent;
+import net.p2pexchangehub.core.api.offer.OfferRequestedAmountChangedEvent;
 import net.p2pexchangehub.core.handler.offer.OfferState;
+import net.p2pexchangehub.core.util.ExchangeRateEvaluator;
 import net.p2pexchangehub.view.domain.Offer;
 import net.p2pexchangehub.view.domain.UserAccount;
 import net.p2pexchangehub.view.repository.OfferRepository;
@@ -30,20 +32,29 @@ public class ExchangeOfferListener implements ReplayAware {
     @Inject
     private UserAccountRepository userAccountRepository;
     
+    @Inject
+    private ExchangeRateEvaluator exchangeRateEvaluator;
+    
     @EventHandler
     public void offerCreated(OfferCreatedEvent event, @Timestamp DateTime eventTimestamp) {
         UserAccount userAccount = userAccountRepository.findOne(event.getUserAccountId());
         
         Offer offer = new Offer();
-        offer.setAmountOfferedMax(event.getAmountOfferedMax());
-        offer.setAmountOfferedMin(event.getAmountOfferedMin());
         offer.setCurrencyOffered(event.getCurrencyOffered());
         offer.setCurrencyRequested(event.getCurrencyRequested());
         offer.setId(event.getOfferId());
-        offer.setAmountRequestedExchangeRateFormula(event.getRequestedExchangeRate());
         offer.setUserAccountId(event.getUserAccountId());
         offer.setReferenceId(userAccount.getPaymentsCode());
         offer.changeState(OfferState.UNPAIRED, eventTimestamp);
+        repository.save(offer);
+    }
+    
+    @EventHandler
+    public void handle(OfferRequestedAmountChangedEvent event) {
+        Offer offer = repository.findOne(event.getOfferId());
+        offer.setAmountOfferedMax(event.getAmountOfferedMax());
+        offer.setAmountOfferedMin(event.getAmountOfferedMin());
+        offer.setRequestedExchangeRateExpression(event.getExchangeRateExpression());        
         repository.save(offer);
     }
     
@@ -53,6 +64,7 @@ public class ExchangeOfferListener implements ReplayAware {
         offer.setAmountOffered(event.getAmountOffered());
         offer.setAmountRequested(event.getAmountRequested());
         offer.setMatchedExchangeOfferId(event.getMatchedOfferId());
+        offer.setExchangeRate(exchangeRateEvaluator.calculateRateRounded(event.getAmountOffered(), event.getAmountRequested()));
         offer.changeState(OfferState.WAITING_FOR_PAYMENT, eventTimestamp);
         repository.save(offer);
     }

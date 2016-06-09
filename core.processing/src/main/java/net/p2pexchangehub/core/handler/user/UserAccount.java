@@ -1,17 +1,15 @@
 package net.p2pexchangehub.core.handler.user;
 
 import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.apache.commons.collections4.map.MultiKeyMap;
 import org.axonframework.domain.MetaData;
 import org.axonframework.eventhandling.annotation.EventHandler;
 import org.axonframework.eventsourcing.annotation.AbstractAnnotatedAggregateRoot;
@@ -40,6 +38,7 @@ import net.p2pexchangehub.core.api.user.UserAccountStateChangedEvent;
 import net.p2pexchangehub.core.api.user.UserIncomingTransactionMatchedEvent;
 import net.p2pexchangehub.core.api.user.bank.UserBankAccountCreatedEvent;
 import net.p2pexchangehub.core.api.user.bank.UserBankAccountOwnerNameChangedEvent;
+import net.p2pexchangehub.core.api.user.bank.UserBankAccountRemovedEvent;
 import net.p2pexchangehub.core.api.user.contact.ContactDetailRemovedEvent;
 import net.p2pexchangehub.core.api.user.contact.ContactDetailValidatedEvent;
 import net.p2pexchangehub.core.api.user.contact.ContactDetailValidationRequestedEvent;
@@ -54,7 +53,10 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
     
     private Map<String, ContactDetail> contactDetails = new HashMap<>();
 
-    private Map<String, UserBankAccount> bankAccounts = new HashMap<>();
+    /**
+     * Key is currency + account number
+     */
+    private MultiKeyMap<String, UserBankAccount> bankAccounts = new MultiKeyMap<>();
     
     private Map<String, CurrencyAmount> currencyAccounts = new HashMap<>();
 
@@ -81,14 +83,6 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
         return currencyAccounts.computeIfAbsent(currencyAmount.getCurrencyCode(), o -> new CurrencyAmount(o,BigDecimal.ZERO));
     }
     
-    public Set<UserBankAccount> getBankAccounts() {
-        return Collections.unmodifiableSet(new HashSet<>(bankAccounts.values()));
-    }
-
-    public Optional<UserBankAccount> getBankAccount(String id) {
-        return Optional.ofNullable(bankAccounts.get(id));
-    }
-    
     public ContactDetail getContactDetail(String contactValue) {
         return contactDetails.get(contactValue);
     }
@@ -103,21 +97,33 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
 //        username = event.getUsername();
     }
 
-    public void createBankAccount(String country, String currency, String accountNumber, String ownerName, MetaData metadata) {
-        String bankAccountId = UUID.randomUUID().toString();
-        apply(new UserBankAccountCreatedEvent(this.id, bankAccountId, country, currency, accountNumber), metadata);
-        apply(new UserBankAccountOwnerNameChangedEvent(this.id, bankAccountId, ownerName), metadata);
+    public void createBankAccount(String currency, String accountNumber, String ownerName, MetaData metadata) {
+        if (!bankAccounts.containsKey(currency, accountNumber)) {
+            apply(new UserBankAccountCreatedEvent(this.id, currency, accountNumber), metadata);
+            apply(new UserBankAccountOwnerNameChangedEvent(this.id, currency, accountNumber, ownerName), metadata);            
+        }
     }
     
     @EventHandler
     private void handle(UserBankAccountCreatedEvent event) {
-        UserBankAccount userBankAccount = new UserBankAccount(event.getBankAccountId(), event.getCountry(), event.getCurrency(), event.getAccountNumber());
-        bankAccounts.put(event.getBankAccountId(), userBankAccount);
+        UserBankAccount userBankAccount = new UserBankAccount(event.getCurrency(), event.getAccountNumber());
+        bankAccounts.put(event.getCurrency(), event.getAccountNumber(), userBankAccount);
     }
 
     @EventHandler
     private void handle(UserBankAccountOwnerNameChangedEvent event) {
-        bankAccounts.get(event.getBankAccountId()).setOwnerName(event.getOwnerName());
+        bankAccounts.get(event.getCurrency(), event.getAccountNumber()).setOwnerName(event.getOwnerName());
+    }
+    
+    public void removeBankAccount(String currency, String accountNumber, MetaData metadata) {
+        if (bankAccounts.containsKey(currency, accountNumber)) {
+            apply(new UserBankAccountRemovedEvent(this.id, currency, accountNumber), metadata);            
+        }
+    }
+
+    @EventHandler
+    private void handle(UserBankAccountRemovedEvent event) {
+        bankAccounts.removeMultiKey(event.getCurrency(), event.getAccountNumber());
     }
 
     public void matchIncomingTransaction(String transactionId, CurrencyAmount amount, MetaData metadata) {
@@ -318,10 +324,10 @@ public class UserAccount extends AbstractAnnotatedAggregateRoot<String> {
         currencyAccountsReservations.remove(event.getTransactionId());
     }
 
-    public void reserveMoneyForExternalBankAccount(String transactionId, String bankAccountId, CurrencyAmount amount, MetaData metadata) {
+    public void reserveMoneyForExternalBankAccount(String transactionId, String bankAccountNumber, CurrencyAmount amount, MetaData metadata) {
         CurrencyAmount newBalance = getCurrencyAccountBalance(amount).subtract(amount);
-        if (newBalance.isNotNegative() && bankAccounts.containsKey(bankAccountId)) {
-            apply(new UserAccountDebitForExternalBankAccountReservedEvent(id, transactionId, bankAccountId, amount, newBalance), metadata);
+        if (newBalance.isNotNegative()) {
+            apply(new UserAccountDebitForExternalBankAccountReservedEvent(id, transactionId, bankAccountNumber, amount, newBalance), metadata);
         }
     }
 

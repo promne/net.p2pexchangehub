@@ -141,7 +141,7 @@ public class UserResourceApiImpl {
         for (Offer offer : offerView.findByUserAccountId(userAccount.getId())) {
             Offer resultOffer = new Offer();
             for (String property : Arrays.asList(Offer.PROPERTY_AMOUNT_OFFERED, Offer.PROPERTY_AMOUNT_OFFERED_MAX, Offer.PROPERTY_AMOUNT_OFFERED_MIN, 
-                    Offer.PROPERTY_AMOUNT_REQUESTED, Offer.PROPERTY_AMOUNT_REQUESTED_EXCHANGE_RATE_FORMULA, Offer.PROPERTY_CURRENCY_OFFERED, Offer.PROPERTY_CURRENCY_REQUESTED, 
+                    Offer.PROPERTY_AMOUNT_REQUESTED, Offer.PROPERTY_REQUESTED_EXCHANGE_RATE_EXPRESSION, Offer.PROPERTY_CURRENCY_OFFERED, Offer.PROPERTY_CURRENCY_REQUESTED, 
                     Offer.PROPERTY_ID, Offer.PROPERTY_REFERENCE_ID, Offer.PROPERTY_STATE,
                     Offer.PROPERTY_USER_ACCOUNT_ID)) {
                 beanUtilsBean.copyProperty(resultOffer, property, BeanUtils.getProperty(offer, property));            
@@ -168,7 +168,7 @@ public class UserResourceApiImpl {
     public String createOffer(Offer offer) {
         UserAccount userAccount = userIdentity.getUserAccount();
         String newOfferId = UUID.randomUUID().toString();
-        gateway.send(new CreateOfferCommand(newOfferId, userAccount.getId(), offer.getCurrencyOffered(), offer.getAmountOfferedMin(), offer.getAmountOfferedMax(), offer.getCurrencyRequested(), offer.getAmountRequestedExchangeRateFormula()));
+        gateway.send(new CreateOfferCommand(newOfferId, userAccount.getId(), offer.getCurrencyOffered(), offer.getAmountOfferedMin(), offer.getAmountOfferedMax(), offer.getCurrencyRequested(), offer.getRequestedExchangeRateExpression()));
         return newOfferId;
     }
     
@@ -179,7 +179,7 @@ public class UserResourceApiImpl {
         Collection<Offer> result = new ArrayList<>();
         for (Offer offer : offerView.findByState(OfferState.UNPAIRED)) {
             Offer resultOffer = new Offer();
-            for (String property : Arrays.asList(Offer.PROPERTY_AMOUNT_OFFERED_MAX, Offer.PROPERTY_AMOUNT_OFFERED_MIN, Offer.PROPERTY_AMOUNT_REQUESTED_EXCHANGE_RATE_FORMULA, 
+            for (String property : Arrays.asList(Offer.PROPERTY_AMOUNT_OFFERED_MAX, Offer.PROPERTY_AMOUNT_OFFERED_MIN, Offer.PROPERTY_REQUESTED_EXCHANGE_RATE_EXPRESSION, 
                     Offer.PROPERTY_CURRENCY_OFFERED, Offer.PROPERTY_CURRENCY_REQUESTED, Offer.PROPERTY_ID)) {
                 beanUtilsBean.copyProperty(resultOffer, property, BeanUtils.getProperty(offer, property));            
             }

@@ -2,10 +2,10 @@ package net.p2pexchangehub.client.web.helpdesk;
 
 import com.vaadin.addon.contextmenu.GridContextMenu;
 import com.vaadin.cdi.CDIView;
-import com.vaadin.data.util.BeanContainer;
 import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.data.util.filter.Compare;
+import com.vaadin.data.validator.BigDecimalRangeValidator;
 import com.vaadin.data.validator.EmailValidator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
@@ -13,13 +13,13 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Grid;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.VerticalSplitPanel;
 
 import java.math.BigDecimal;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -29,6 +29,7 @@ import javax.inject.Inject;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.vaadin.viritin.fields.EmailField;
 import org.vaadin.viritin.fields.MTextField;
+import org.vaadin.viritin.fields.TypedSelect;
 
 import de.steinwedel.messagebox.MessageBox;
 import george.test.exchange.core.domain.UserAccountRole;
@@ -195,27 +196,24 @@ public class UserAccountView extends VerticalLayout implements View {
                 
                 MTextField amountInputField = new MTextField("Amount");
                 amountInputField.setConverter(BigDecimal.class);
-//                amountInputField.addValidator(new BigDecimalRangeValidator("Please enter positive value", BigDecimal.ZERO, wallet.getAmount()));
+                amountInputField.addValidator(new BigDecimalRangeValidator("Please enter positive value", BigDecimal.ZERO, wallet.getAmount()));
                 amountInputField.setConvertedValue(wallet.getAmount());
                 
-                BeanContainer<String, UserBankAccount> userBankAccountContainer = new BeanContainer<>(UserBankAccount.class);
-                userBankAccountContainer.setBeanIdProperty(UserBankAccount.PROPERTY_ID);
-                userBankAccountContainer.addAll(userAccount.getBankAccounts().stream().filter(uba -> uba.getCurrency().equals(wallet.getCurrency())).collect(Collectors.toSet()));
+                Set<UserBankAccount> userBankAccountsWithCurrency = userAccount.getBankAccounts().stream().filter(uba -> uba.getCurrency().equals(wallet.getCurrency())).collect(Collectors.toSet());
                 
-                OptionGroup userAccountOptionGroup = new OptionGroup("Recipients account", userBankAccountContainer);
-                userAccountOptionGroup.setItemCaptionPropertyId(UserBankAccount.PROPERTY_ACCOUNT_NUMBER);
-                
+                TypedSelect<UserBankAccount> userBankAccountSelect = new TypedSelect<>("Recipients account", userBankAccountsWithCurrency);
+                userBankAccountSelect.setCaptionGenerator(i -> String.format("%s (%s)", i.getAccountNumber(), i.getOwnerName()));
                 
                 walletContextMenu.addItem("Send money", c -> {
                     MessageBox
                     .create()
                     .withCaption("Select amount you want to sent")
-                    .withMessage(new VerticalLayout(amountInputField, userAccountOptionGroup))
+                    .withMessage(new VerticalLayout(amountInputField, userBankAccountSelect))
                     .withOkButton(() -> {
                         amountInputField.validate();
-                        UserBankAccount selectedUserBankAccount = userBankAccountContainer.getItem(userAccountOptionGroup.getValue()).getBean();
+                        UserBankAccount selectedUserBankAccount = userBankAccountSelect.getValue();
                         BigDecimal amountToSend = (BigDecimal) amountInputField.getConvertedValue();
-                        gateway.send(new SendMoneyToUserBankAccountCommand(userAccount.getId(), selectedUserBankAccount.getId(), new CurrencyAmount(wallet.getCurrency(), amountToSend)));
+                        gateway.send(new SendMoneyToUserBankAccountCommand(userAccount.getId(), selectedUserBankAccount.getAccountNumber(), new CurrencyAmount(wallet.getCurrency(), amountToSend)));
                     })
                     .withCancelButton().open();                                
                 });

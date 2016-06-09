@@ -10,16 +10,16 @@ public class RequestExternalBankTransactionCommand {
 
     private final String userAccountId;    
     
-    private final String userBankAccountId;
+    private final String bankAccountNumber;
     
     private final CurrencyAmount amount;
 
-    public RequestExternalBankTransactionCommand(String bankAccountId, String transactionId, String userAccountId, String userBankAccountId, CurrencyAmount amount) {
+    public RequestExternalBankTransactionCommand(String bankAccountId, String transactionId, String userAccountId, String bankAccountNumber, CurrencyAmount amount) {
         super();
         this.bankAccountId = bankAccountId;
         this.transactionId = transactionId;
         this.userAccountId = userAccountId;
-        this.userBankAccountId = userBankAccountId;
+        this.bankAccountNumber = bankAccountNumber;
         this.amount = amount;
     }
 
@@ -35,8 +35,8 @@ public class RequestExternalBankTransactionCommand {
         return userAccountId;
     }
 
-    public String getUserBankAccountId() {
-        return userBankAccountId;
+    public String getBankAccountNumber() {
+        return bankAccountNumber;
     }
 
     public CurrencyAmount getAmount() {

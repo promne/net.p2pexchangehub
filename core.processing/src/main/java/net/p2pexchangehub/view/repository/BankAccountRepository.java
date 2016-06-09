@@ -10,4 +10,6 @@ public interface BankAccountRepository extends MongoRepository<BankAccount, Stri
 
     public List<BankAccount> findByCurrencyAndActiveTrue(String currency);
 
+    public List<BankAccount> findByActiveTrue();
+    
 }

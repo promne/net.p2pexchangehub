@@ -27,8 +27,8 @@ public class ExchangeOfferTest {
     @Test
     public void testCreateOffer() {
          fixture.given()
-             .when(new CreateOfferCommand("offerId", "userAccountId", "currencyOffered", BigDecimal.ZERO, BigDecimal.TEN, "currencyRequested", BigDecimal.ONE))
-             .expectEvents(new OfferCreatedEvent("offerId", "userAccountId", "currencyOffered", BigDecimal.ZERO, BigDecimal.TEN, "currencyRequested", BigDecimal.ONE));         
+             .when(new CreateOfferCommand("offerId", "userAccountId", "currencyOffered", BigDecimal.ZERO, BigDecimal.TEN, "currencyRequested", "1"))
+             .expectEvents(new OfferCreatedEvent("offerId", "userAccountId", "currencyOffered", BigDecimal.ZERO, BigDecimal.TEN, "currencyRequested", "1"));         
     }
     
 }

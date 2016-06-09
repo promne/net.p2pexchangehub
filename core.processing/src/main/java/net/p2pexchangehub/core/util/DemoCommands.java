@@ -107,16 +107,16 @@ public class DemoCommands {
         String userAccountId1 = "usac1";
         gateway.send(new CreateUserAccountCommand(userAccountId1 , "username1"));
         gateway.send(new SetUserAccountPasswordCommand(userAccountId1 , "password1"));
-        gateway.send(new CreateUserBankAccountCommand(userAccountId1, "CZE", "CZK", "2-0", "accountOwnerName"));
-        gateway.send(new CreateUserBankAccountCommand(userAccountId1, "NZL", "NZD", "2-1", "accountOwnerName"));
-        gateway.send(new CreateUserBankAccountCommand(userAccountId1, "CZE", "CZK", "2-2", "accountOwnerName"));
-        gateway.send(new CreateUserBankAccountCommand(userAccountId1, "NZL", "NZD", "2-3", "accountOwnerName"));
+        gateway.send(new CreateUserBankAccountCommand(userAccountId1, "CZK", "123456/2400", "accountOwnerName"));
+        gateway.send(new CreateUserBankAccountCommand(userAccountId1, "NZD", "00-1234-1231237-00", "accountOwnerName"));
+        gateway.send(new CreateUserBankAccountCommand(userAccountId1, "CZK", "6-123456/2400", "accountOwnerName"));
+        gateway.send(new CreateUserBankAccountCommand(userAccountId1, "NZD", "00-1234-1231237-01", "accountOwnerName"));
 
         String userAccountId2 = "usac2";
         gateway.send(new CreateUserAccountCommand(userAccountId2 , "usernameIsHere"));
         gateway.send(new SetUserAccountPasswordCommand(userAccountId2 , "password2"));
-        gateway.send(new CreateUserBankAccountCommand(userAccountId2, "CZE", "CZK", "2-0", "accountOwnerName"));
-        gateway.send(new CreateUserBankAccountCommand(userAccountId2, "NZL", "NZD", "2-1", "accountOwnerName"));
+        gateway.send(new CreateUserBankAccountCommand(userAccountId2, "CZK", "240/6666", "accountOwnerName"));
+        gateway.send(new CreateUserBankAccountCommand(userAccountId2, "NZD", "12-1234-1234567-00", "accountOwnerName"));
         
         
 //        gateway.send(new CreateOfferCommand("offerId", userAccountId1, "CZK", BigDecimal.ZERO, BigDecimal.TEN, "NZD", new BigDecimal("0.1333")));

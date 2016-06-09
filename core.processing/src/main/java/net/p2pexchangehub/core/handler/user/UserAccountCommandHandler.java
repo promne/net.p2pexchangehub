@@ -32,10 +32,12 @@ import net.p2pexchangehub.core.api.user.RequestSendNotificationToUserAccountComm
 import net.p2pexchangehub.core.api.user.SendMoneyToUserBankAccountCommand;
 import net.p2pexchangehub.core.api.user.SetUserAccountPasswordCommand;
 import net.p2pexchangehub.core.api.user.bank.CreateUserBankAccountCommand;
+import net.p2pexchangehub.core.api.user.bank.RemoveUserBankAccountCommand;
 import net.p2pexchangehub.core.api.user.contact.AddEmailContactCommand;
 import net.p2pexchangehub.core.api.user.contact.AddPhoneNumberContactCommand;
 import net.p2pexchangehub.core.api.user.contact.RequestContactValidationCodeCommand;
 import net.p2pexchangehub.core.api.user.contact.ValidateContactDetailCommand;
+import net.p2pexchangehub.core.handler.external.bank.ExternalBankAccountNumberValidator;
 import net.p2pexchangehub.core.handler.offer.ExchangeOffer;
 import net.p2pexchangehub.core.handler.user.ContactDetail.Type;
 import net.p2pexchangehub.view.repository.UserAccountRepository;
@@ -55,6 +57,9 @@ public class UserAccountCommandHandler {
     @Inject
     private UserAccountRepository userAccountRepository;
     
+    @Inject
+    private ExternalBankAccountNumberValidator externalBankAccountNumberValidator;
+    
     @CommandHandler
     public void handleCreateUserAccount(CreateUserAccountCommand command, MetaData metadata) {
         Optional<net.p2pexchangehub.view.domain.UserAccount> existingUserAccount = userAccountRepository.findOneByUsernameIgnoreCase(command.getUsername());
@@ -69,9 +74,18 @@ public class UserAccountCommandHandler {
     @CommandHandler
     public void handleCreateBankAccount(CreateUserBankAccountCommand command, MetaData metadata) {
         UserAccount userAccount = repository.load(command.getUserAccountId());
-        //TODO add validators
+        String validationPattern = externalBankAccountNumberValidator.getValidationPattern(command.getCurrency());
+        if (!command.getAccountNumber().matches(validationPattern)) {
+            throw new IllegalArgumentException("Account number "+ command.getAccountNumber() + " doesn't match the pattern " + validationPattern);
+        }
         
-        userAccount.createBankAccount(command.getCountry(), command.getCurrency(), command.getAccountNumber(), command.getAccountOwnerName(), metadata);
+        userAccount.createBankAccount(command.getCurrency(), command.getAccountNumber(), command.getAccountOwnerName(), metadata);
+    }
+
+    @CommandHandler
+    public void handleRemoveBankAccount(RemoveUserBankAccountCommand command, MetaData metadata) {
+        UserAccount userAccount = repository.load(command.getUserAccountId());
+        userAccount.removeBankAccount(command.getCurrency(), command.getAccountNumber(), metadata);
     }
 
     @CommandHandler
@@ -177,7 +191,7 @@ public class UserAccountCommandHandler {
     public void handleSendMoneyExternal(SendMoneyToUserBankAccountCommand command, MetaData metadata) {
         //TODO handle precision
         UserAccount userAccount = repository.load(command.getUserAccountId());
-        userAccount.reserveMoneyForExternalBankAccount(command.getTransactionId(), command.getBankAccountId(), command.getAmount(), metadata);
+        userAccount.reserveMoneyForExternalBankAccount(command.getTransactionId(), command.getBankAccountNumber(), command.getAmount(), metadata);
     }
     
     @CommandHandler

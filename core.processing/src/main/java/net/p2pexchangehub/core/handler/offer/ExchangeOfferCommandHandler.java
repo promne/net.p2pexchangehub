@@ -1,24 +1,16 @@
 package net.p2pexchangehub.core.handler.offer;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Arrays;
-import java.util.Optional;
-import java.util.stream.StreamSupport;
 
-import javax.enterprise.inject.Any;
-import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import org.axonframework.commandhandling.annotation.CommandHandler;
 import org.axonframework.domain.MetaData;
 import org.axonframework.repository.Repository;
-import org.slf4j.Logger;
 
-import george.test.exchange.core.domain.ExternalBankType;
 import george.test.exchange.core.processing.service.CurrencyService;
-import george.test.exchange.core.processing.service.bank.BankProvider;
 import george.test.exchange.core.processing.service.bank.BankProviderException;
 import net.p2pexchangehub.core.api._domain.CurrencyAmount;
 import net.p2pexchangehub.core.api.offer.CancelExchangeOfferCommand;
@@ -29,9 +21,8 @@ import net.p2pexchangehub.core.api.offer.CreditOfferCommand;
 import net.p2pexchangehub.core.api.offer.MatchExchangeOfferCommand;
 import net.p2pexchangehub.core.api.offer.RequestOfferCreditDeclineCommand;
 import net.p2pexchangehub.core.api.offer.RequestOfferDebitCommand;
-import net.p2pexchangehub.core.handler.external.bank.TestBankAccount;
 import net.p2pexchangehub.core.handler.user.UserAccount;
-import net.p2pexchangehub.view.repository.BankAccountRepository;
+import net.p2pexchangehub.core.util.ExchangeRateEvaluator;
 
 @Singleton
 public class ExchangeOfferCommandHandler {
@@ -40,23 +31,13 @@ public class ExchangeOfferCommandHandler {
     private CurrencyService currencyService;
     
     @Inject
-    @Any
-    private Instance<BankProvider> bankProviders;
-    
-    @Inject
     private Repository<UserAccount> userAccountRepository;
     
     @Inject
     private Repository<ExchangeOffer> repository;
 
     @Inject
-    private Repository<TestBankAccount> repositoryAccounts;
-    
-    @Inject
-    private BankAccountRepository bankAccountRepository;    
-
-    @Inject
-    private Logger log;
+    private ExchangeRateEvaluator exchangeRateEvaluator;
     
     public Repository<ExchangeOffer> getRepository() {
         return repository;
@@ -66,14 +47,10 @@ public class ExchangeOfferCommandHandler {
         this.repository = repository;
     }
 
-    private Optional<BankProvider> getBankProvider(ExternalBankType bankType) {
-        return StreamSupport.stream(bankProviders.spliterator(), false).filter(p -> p.getType()==bankType).findFirst();
-    }    
-    
     @CommandHandler
     public void handleCreateOffer(CreateOfferCommand command, MetaData metadata) {
         userAccountRepository.load(command.getUserAccountId()); //ensure user account exists
-        ExchangeOffer offer = new ExchangeOffer(command.getOfferId(), command.getUserAccountId(), command.getCurrencyOffered(), command.getAmountOfferedMin(), command.getAmountOfferedMax(), command.getCurrencyRequested(), command.getRequestedExchangeRate(), metadata);
+        ExchangeOffer offer = new ExchangeOffer(command.getOfferId(), command.getUserAccountId(), command.getCurrencyOffered(), command.getAmountOfferedMin(), command.getAmountOfferedMax(), command.getCurrencyRequested(), command.getRequestedExchangeRateExpression(), metadata);
         repository.add(offer);
     }
 
@@ -86,16 +63,26 @@ public class ExchangeOfferCommandHandler {
             throw new IllegalStateException("Unable to match offers for the same user account");
         }
         
+        BigDecimal matchOfferRequestedExchangeRate = exchangeRateEvaluator.evaluate(matchOffer.getRequestedExchangeRateExpression());
+        
         //create fitting counter offer 
-        BigDecimal requestedAmountExchanged = currencyService.calculateExchangePay(command.getAmountRequested(), matchOffer.getCurrencyOffered(), matchOffer.getCurrencyRequested(), matchOffer.getAmountRequestedExchangeRate());
+        BigDecimal requestedAmountExchanged = currencyService.calculateExchangePay(command.getAmountRequested(), matchOffer.getCurrencyOffered(), matchOffer.getCurrencyRequested(), matchOfferRequestedExchangeRate);
         if (requestedAmountExchanged.compareTo(command.getAmountOffered()) > 0) {
             throw new IllegalStateException("Unable to match offer with lower bid");            
         }
         
-        BigDecimal offerExchangeRate = command.getAmountRequested().divide(command.getAmountOffered(), 4, RoundingMode.DOWN);
-        ExchangeOffer offer = new ExchangeOffer(command.getNewOfferId(), command.getUserAccountId(), matchOffer.getCurrencyRequested(), command.getAmountOffered(), command.getAmountOffered(), matchOffer.getCurrencyOffered(), offerExchangeRate, metadata);
-        repository.add(offer);
+        BigDecimal offerExchangeRate = exchangeRateEvaluator.calculateRateRounded(command.getAmountOffered(), command.getAmountRequested()); 
+
+        //lazy thinker check to be sure
+        if (command.getAmountRequested().multiply(matchOfferRequestedExchangeRate).compareTo(requestedAmountExchanged)>0) {
+          throw new IllegalStateException(command.toString());            
+        }
+        if (command.getAmountOffered().multiply(offerExchangeRate).compareTo(command.getAmountRequested())>0) {
+            throw new IllegalStateException(command.toString());            
+        }
         
+        ExchangeOffer offer = new ExchangeOffer(command.getNewOfferId(), command.getUserAccountId(), matchOffer.getCurrencyRequested(), command.getAmountOffered(), command.getAmountOffered(), matchOffer.getCurrencyOffered(), offerExchangeRate.toPlainString(), metadata);
+        repository.add(offer);
         //and match with minimal amounts satisfying both
         matchOffer.matchWithOffer(command.getNewOfferId(), command.getAmountRequested(), requestedAmountExchanged, metadata);
         offer.matchWithOffer(command.getMatchOfferId(), command.getAmountOffered(), command.getAmountRequested(), metadata);

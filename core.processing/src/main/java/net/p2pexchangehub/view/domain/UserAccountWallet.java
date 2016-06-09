@@ -42,6 +42,11 @@ public class UserAccountWallet {
     }
 
     @Override
+    public String toString() {
+        return currency + ":" + amount;
+    }
+
+    @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;

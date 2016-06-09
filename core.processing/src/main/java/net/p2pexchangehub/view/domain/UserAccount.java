@@ -74,8 +74,8 @@ public class UserAccount {
         return bankAccounts;
     }
 
-    public Optional<UserBankAccount> getBankAccount(String id) {
-        return bankAccounts.stream().filter(c -> c.getId().equals(id)).findAny();        
+    public Optional<UserBankAccount> getBankAccount(String currency, String accountNumber) {
+        return bankAccounts.stream().filter(c -> c.getCurrency().equals(currency) && c.getAccountNumber().equals(accountNumber)).findAny();        
     }
     
     public void setBankAccounts(Set<UserBankAccount> bankAccounts) {

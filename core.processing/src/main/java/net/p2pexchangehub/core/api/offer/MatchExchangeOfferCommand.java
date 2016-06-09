@@ -42,5 +42,11 @@ public class MatchExchangeOfferCommand {
     public BigDecimal getAmountRequested() {
         return amountRequested;
     }
+
+    @Override
+    public String toString() {
+        return "MatchExchangeOfferCommand [newOfferId=" + newOfferId + ", matchOfferId=" + matchOfferId + ", userAccountId=" + userAccountId + ", amountOffered=" + amountOffered
+                + ", amountRequested=" + amountRequested + "]";
+    }
     
 }

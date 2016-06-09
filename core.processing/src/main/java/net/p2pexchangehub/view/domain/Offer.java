@@ -33,11 +33,14 @@ public class Offer {
     private String currencyRequested;
     public static final String PROPERTY_CURRENCY_REQUESTED = "currencyRequested";
 
-    private BigDecimal amountRequestedExchangeRateFormula;
-    public static final String PROPERTY_AMOUNT_REQUESTED_EXCHANGE_RATE_FORMULA = "amountRequestedExchangeRateFormula";
+    private String requestedExchangeRateExpression;
+    public static final String PROPERTY_REQUESTED_EXCHANGE_RATE_EXPRESSION = "requestedExchangeRateExpression";
 
     private BigDecimal amountRequested;
     public static final String PROPERTY_AMOUNT_REQUESTED = "amountRequested";
+
+    private BigDecimal exchangeRate;
+    public static final String PROPERTY_EXCHANGE_RATE = "exchangeRate";
 
     private OfferState state;
     public static final String PROPERTY_STATE = "state";
@@ -110,12 +113,12 @@ public class Offer {
         this.currencyRequested = currencyRequested;
     }
 
-    public BigDecimal getAmountRequestedExchangeRateFormula() {
-        return amountRequestedExchangeRateFormula;
+    public String getRequestedExchangeRateExpression() {
+        return requestedExchangeRateExpression;
     }
 
-    public void setAmountRequestedExchangeRateFormula(BigDecimal amountRequestedExchangeRate) {
-        this.amountRequestedExchangeRateFormula = amountRequestedExchangeRate;
+    public void setRequestedExchangeRateExpression(String exchangeRateExpression) {
+        this.requestedExchangeRateExpression = exchangeRateExpression;
     }
 
     public BigDecimal getAmountRequested() {
@@ -149,6 +152,14 @@ public class Offer {
 
     public void setReferenceId(String referenceId) {
         this.referenceId = referenceId;
+    }
+
+    public BigDecimal getExchangeRate() {
+        return exchangeRate;
+    }
+
+    public void setExchangeRate(BigDecimal exchangeRate) {
+        this.exchangeRate = exchangeRate;
     }
     
 }

@@ -25,7 +25,6 @@ import net.p2pexchangehub.core.api.external.bank.SetExternalBankAccountCredentia
 import net.p2pexchangehub.core.api.external.bank.SetExternalBankAccountSynchronizationEnabledCommand;
 import net.p2pexchangehub.core.api.external.bank.SetExternalBankAccountSynchronizedCommand;
 import net.p2pexchangehub.core.handler.user.UserAccount;
-import net.p2pexchangehub.core.handler.user.UserBankAccount;
 
 @Singleton
 public class ExternalBankAccountCommandHandler {
@@ -104,9 +103,7 @@ public class ExternalBankAccountCommandHandler {
     @CommandHandler
     public void handle(RequestExternalBankTransactionCommand command, MetaData metadata) {
         ExternalBankAccount bankAccount = repositoryAccounts.load(command.getBankAccountId());
-                
         UserAccount userAccount = repositoryUserAccount.load(command.getUserAccountId());
-        Optional<UserBankAccount> userBankAccount = userAccount.getBankAccount(command.getUserBankAccountId());
         
         //TODO: this is ugly shortcut, split into multiple event/command - UserAccountCreditExternalBankAccountManager or new one for external bank account
         // it would be handy to allow retires etc.
@@ -118,13 +115,13 @@ public class ExternalBankAccountCommandHandler {
         transactionRequest.setBankAccount(bankAccount);
         transactionRequest.setAmount(command.getAmount().getAmount());
         transactionRequest.setDetailInfo(userAccount.getPaymentsCode());
-        transactionRequest.setRecipientAccountNumber(userBankAccount.get().getAccountNumber());
+        transactionRequest.setRecipientAccountNumber(command.getBankAccountNumber());
           
         try {
             bankProvider.get().processTransactionRequest(transactionRequest);
-            bankAccount.externalTransactionRequestSucceeded(command.getTransactionId(), command.getUserAccountId(), command.getUserBankAccountId(), command.getAmount(), metadata);
+            bankAccount.externalTransactionRequestSucceeded(command.getTransactionId(), command.getUserAccountId(), command.getBankAccountNumber(), command.getAmount(), metadata);
         } catch (BankProviderException e) {
-            bankAccount.externalTransactionRequestFailed(command.getTransactionId(), command.getUserAccountId(), command.getUserBankAccountId(), command.getAmount(), metadata);
+            bankAccount.externalTransactionRequestFailed(command.getTransactionId(), command.getUserAccountId(), command.getBankAccountNumber(), command.getAmount(), metadata);
         }
         
     }

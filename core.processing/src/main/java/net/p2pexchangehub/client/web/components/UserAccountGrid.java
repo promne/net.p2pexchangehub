@@ -3,10 +3,13 @@ package net.p2pexchangehub.client.web.components;
 import com.vaadin.addon.contextmenu.GridContextMenu;
 import com.vaadin.addon.contextmenu.MenuItem;
 import com.vaadin.cdi.ViewScoped;
+import com.vaadin.data.Item;
+import com.vaadin.data.util.PropertyValueGenerator;
 import com.vaadin.ui.TextField;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -21,11 +24,15 @@ import net.p2pexchangehub.core.api.user.DisableUserAccountCommand;
 import net.p2pexchangehub.core.api.user.EnableUserAccountCommand;
 import net.p2pexchangehub.core.api.user.RemoveUserAccountRolesCommand;
 import net.p2pexchangehub.view.domain.UserAccount;
+import net.p2pexchangehub.view.domain.UserAccountContact;
+import net.p2pexchangehub.view.domain.UserAccountContact.Type;
 import net.p2pexchangehub.view.repository.UserAccountRepository;
 
 @ViewScoped
 public class UserAccountGrid extends MongoGrid<UserAccount> {
 
+    public static final String PROPERTY_EMAILS = "emails";
+    
     @Inject
     private CommandGateway gateway;
     
@@ -35,9 +42,16 @@ public class UserAccountGrid extends MongoGrid<UserAccount> {
     public UserAccountGrid() {
         super(UserAccount.class);
         
-        setCellStyleGenerator(cellRef -> {
+        setCellStyleGenerator(cellRef -> {            
             UserAccount userAccount = getEntity(cellRef.getItemId());
-            return userAccount.isEnabled() ? null : THEME_STYLE_WARNING;
+            String cellStyle = null;
+            if (cellRef.getPropertyId().equals(PROPERTY_EMAILS) && (!userAccount.getContacts(Type.EMAIL).stream().allMatch(UserAccountContact::isValidated))) {
+                cellStyle = THEME_STYLE_WARNING;
+            }
+            if (!userAccount.isEnabled()) {
+                cellStyle = THEME_STYLE_WARNING;
+            }
+            return cellStyle;
         } );        
         
         
@@ -93,7 +107,23 @@ public class UserAccountGrid extends MongoGrid<UserAccount> {
     private void init() {
         setSizeFull();
         setCaption("Users");
-        setColumns(UserAccount.PROPERTY_USERNAME, UserAccount.PROPERTY_ENABLED);        
+
+        getGeneratedPropertyContainer().addGeneratedProperty(PROPERTY_EMAILS, new PropertyValueGenerator<String>() {
+            @Override
+            public String getValue(Item item, Object itemId, Object propertyId) {
+                UserAccount userAccount = getEntity(itemId);
+                return userAccount.getContacts(Type.EMAIL).stream().map(UserAccountContact::getValue).collect(Collectors.joining(" "));
+            }
+            
+            @Override
+            public Class<String> getType() {
+                return String.class;
+            }
+        });
+        
+        
+        setColumns(UserAccount.PROPERTY_ID, UserAccount.PROPERTY_USERNAME, UserAccount.PROPERTY_PAYMENTS_CODE, UserAccount.PROPERTY_NAME, UserAccount.PROPERTY_ROLES, UserAccount.PROPERTY_ENABLED, UserAccount.PROPERTY_WALLET, PROPERTY_EMAILS);
+        setVisibleColumns(UserAccount.PROPERTY_USERNAME, PROPERTY_EMAILS, UserAccount.PROPERTY_ROLES, UserAccount.PROPERTY_WALLET);
     }
 
     @Override

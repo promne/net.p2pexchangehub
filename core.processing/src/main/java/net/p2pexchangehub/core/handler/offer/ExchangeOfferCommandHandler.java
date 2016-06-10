@@ -21,6 +21,7 @@ import net.p2pexchangehub.core.api.offer.CreditOfferCommand;
 import net.p2pexchangehub.core.api.offer.MatchExchangeOfferCommand;
 import net.p2pexchangehub.core.api.offer.RequestOfferCreditDeclineCommand;
 import net.p2pexchangehub.core.api.offer.RequestOfferDebitCommand;
+import net.p2pexchangehub.core.api.offer.UnmatchExchangeOfferCommand;
 import net.p2pexchangehub.core.handler.user.UserAccount;
 import net.p2pexchangehub.core.util.ExchangeRateEvaluator;
 
@@ -88,6 +89,16 @@ public class ExchangeOfferCommandHandler {
         offer.matchWithOffer(command.getMatchOfferId(), command.getAmountOffered(), command.getAmountRequested(), metadata);
     }
 
+    @CommandHandler
+    public void handle(UnmatchExchangeOfferCommand command, MetaData metadata) {
+        ExchangeOffer offer1 = repository.load(command.getOfferId());
+        ExchangeOffer offer2 = repository.load(offer1.getMatchedExchangeOfferId());
+        
+        //TODO: this is extremely nasty
+        offer1.unmatchOffer(metadata);
+        offer2.unmatchOffer(metadata);
+    }
+    
     @CommandHandler
     public void handleCredit(CreditOfferCommand command, MetaData metadata) {
         repository.load(command.getOfferId()).credit(command.getTransactionId(), command.getUserAccountId(), command.getAmount(), metadata);

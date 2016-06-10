@@ -16,9 +16,11 @@ import javax.inject.Inject;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 
 import george.test.exchange.core.domain.UserAccountRole;
+import george.test.exchange.core.processing.service.CurrencyService;
 import net.p2pexchangehub.client.web.security.UserIdentity;
 import net.p2pexchangehub.core.api.offer.CancelExchangeOfferCommand;
 import net.p2pexchangehub.core.api.offer.RequestOfferCreditDeclineCommand;
+import net.p2pexchangehub.core.api.offer.UnmatchExchangeOfferCommand;
 import net.p2pexchangehub.core.api.user.CreditOfferFromUserAccountCommand;
 import net.p2pexchangehub.core.handler.offer.OfferState;
 import net.p2pexchangehub.core.util.ExchangeRateEvaluator;
@@ -31,7 +33,11 @@ public class OfferGrid extends MongoGrid<Offer> {
 
     public static final String PROPERTY_AMOUNT_OFFERED_READABLE = "amountOfferedReadable";
 
+    public static final String PROPERTY_AMOUNT_REQUESTED_READABLE = "amountRequestedReadable";
+
     public static final String PROPERTY_EXCHANGE_RATE_READABLE = "exchangeRateReadable";
+
+    public static final String PROPERTY_ACTION_CUSTOM = "customActionGenerated";
 
     @Inject
     private CommandGateway gateway;
@@ -44,6 +50,9 @@ public class OfferGrid extends MongoGrid<Offer> {
 
     @Inject
     private ExchangeRateEvaluator exchangeRateEvaluator;
+    
+    @Inject
+    private CurrencyService currencyService;
     
     public OfferGrid() {
         super(Offer.class);
@@ -69,10 +78,13 @@ public class OfferGrid extends MongoGrid<Offer> {
 
             Offer offer = getEntity(e.getItemId());
             if (offer!=null && userIdentity.hasAnyRole(UserAccountRole.ADMIN, UserAccountRole.TRADER)) {
-                if (offer.getState()==OfferState.UNPAIRED) {
+                boolean isOfferOwner = userIdentity.getUserAccountId().equals(offer.getUserAccountId());
+                
+                
+                if (offer.getState()==OfferState.UNPAIRED && (isOfferOwner || userIdentity.hasAnyRole(UserAccountRole.ADMIN))) {
                     offerContextMenu.addItem("Cancel", c -> gateway.send(new CancelExchangeOfferCommand(offer.getId())));                                        
                 }
-                if (offer.getState().equals(OfferState.WAITING_FOR_PAYMENT)) {
+                if (offer.getState().equals(OfferState.WAITING_FOR_PAYMENT) && (isOfferOwner || userIdentity.hasAnyRole(UserAccountRole.ADMIN))) {
                     UserAccount offerOwnerUserAccount = userAccountRepository.findOne(offer.getUserAccountId());
                     if (offerOwnerUserAccount.getWallet().stream().anyMatch(w -> w.getCurrency().equals(offer.getCurrencyOffered()) && w.getAmount().compareTo(offer.getAmountOffered())>=0)) {
                         offerContextMenu.addItem("Charge money", c -> gateway.send(new CreditOfferFromUserAccountCommand(offer.getId())));
@@ -81,6 +93,9 @@ public class OfferGrid extends MongoGrid<Offer> {
                 if (userIdentity.hasRole(UserAccountRole.ADMIN)) {
                     if (offer.getState().equals(OfferState.PAYED)) {
                         offerContextMenu.addItem("Discharge money", c -> gateway.send(new RequestOfferCreditDeclineCommand(offer.getId())));
+                    }                                                    
+                    if (offer.getState().equals(OfferState.WAITING_FOR_PAYMENT)) {
+                        offerContextMenu.addItem("Unmatch", c -> gateway.send(new UnmatchExchangeOfferCommand(offer.getId())));
                     }                                                    
                 }
             }
@@ -96,7 +111,41 @@ public class OfferGrid extends MongoGrid<Offer> {
             @Override
             public String getValue(Item item, Object itemId, Object propertyId) {
                 Offer offer = getEntity(itemId);
-                return offer.getAmountOffered()!=null ? offer.getAmountOffered().toPlainString() : String.format("%s - %s", offer.getAmountOfferedMin().toPlainString(), offer.getAmountOfferedMax().toPlainString());
+                String amountString;
+                if (offer.getAmountOffered()!=null) {
+                    amountString = offer.getAmountOffered().toPlainString();
+                } else if (offer.getAmountOfferedMin().compareTo(offer.getAmountOfferedMax())==0) {
+                    amountString = offer.getAmountOfferedMin().toPlainString();
+                } else {
+                    amountString = String.format("%s - %s", offer.getAmountOfferedMin().toPlainString(), offer.getAmountOfferedMax().toPlainString());
+                }
+                return amountString + " " + offer.getCurrencyOffered();
+            }
+            
+            @Override
+            public Class<String> getType() {
+                return String.class;
+            }
+        });        
+
+        getGeneratedPropertyContainer().addGeneratedProperty(PROPERTY_AMOUNT_REQUESTED_READABLE, new PropertyValueGenerator<String>() {
+            @Override
+            public String getValue(Item item, Object itemId, Object propertyId) {
+                Offer offer = getEntity(itemId);
+                String amountString;
+                if (offer.getAmountRequested()!=null) {
+                    amountString = offer.getAmountRequested().toPlainString();
+                } else {
+                    BigDecimal exchangeRate = exchangeRateEvaluator.evaluate(offer.getRequestedExchangeRateExpression()).setScale(4);
+                    String requestedAmountExchangedMin = currencyService.calculateExchangePay(offer.getAmountOfferedMin(), offer.getCurrencyOffered(), offer.getCurrencyRequested(), exchangeRate).toPlainString();
+                    if (offer.getAmountOfferedMin().compareTo(offer.getAmountOfferedMax())==0) {
+                        amountString = requestedAmountExchangedMin;
+                    } else {
+                        String requestedAmountExchangedMax = currencyService.calculateExchangePay(offer.getAmountOfferedMax(), offer.getCurrencyOffered(), offer.getCurrencyRequested(), exchangeRate).toPlainString();
+                        amountString = String.format("%s - %s", requestedAmountExchangedMin, requestedAmountExchangedMax);
+                    }
+                }
+                return amountString + " " + offer.getCurrencyRequested();
             }
             
             @Override
@@ -121,10 +170,14 @@ public class OfferGrid extends MongoGrid<Offer> {
                 return BigDecimal.class;
             }
         });        
+        getGeneratedPropertyContainer().addGeneratedProperty(PROPERTY_ACTION_CUSTOM, new ConstantPropertyValueGenerator<>("Action"));
 
+        
         Map<String, String> columnTranslationMap = new HashMap<>();
-        columnTranslationMap.put(PROPERTY_AMOUNT_OFFERED_READABLE, "Amount offered");
+        columnTranslationMap.put(PROPERTY_AMOUNT_OFFERED_READABLE, "Offered");
+        columnTranslationMap.put(PROPERTY_AMOUNT_REQUESTED_READABLE, "Requested");
         columnTranslationMap.put(PROPERTY_EXCHANGE_RATE_READABLE, "Exchange rate");
+        columnTranslationMap.put(PROPERTY_ACTION_CUSTOM, "Action");
 
         for (Map.Entry<String, String> columnTranslation : columnTranslationMap.entrySet()) {
             Column column = getColumn(columnTranslation.getKey());

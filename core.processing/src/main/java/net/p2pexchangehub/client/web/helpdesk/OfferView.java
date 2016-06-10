@@ -10,9 +10,8 @@ import com.vaadin.ui.Window;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.security.RolesAllowed;
@@ -23,14 +22,13 @@ import org.vaadin.viritin.layouts.MHorizontalLayout;
 import org.vaadin.viritin.layouts.MWindow;
 
 import net.p2pexchangehub.client.web.components.OfferGrid;
-import net.p2pexchangehub.client.web.form.OfferEditor;
+import net.p2pexchangehub.client.web.form.OfferForm;
 import net.p2pexchangehub.core.api.offer.CreateOfferCommand;
 import net.p2pexchangehub.core.api.offer.MatchExchangeOfferCommand;
 import net.p2pexchangehub.core.handler.offer.OfferState;
 import net.p2pexchangehub.core.util.ExchangeRateEvaluator;
-import net.p2pexchangehub.view.domain.BankAccount;
 import net.p2pexchangehub.view.domain.Offer;
-import net.p2pexchangehub.view.repository.BankAccountRepository;
+import net.p2pexchangehub.view.repository.BankAccountRepositoryHelper;
 
 @CDIView(OfferView.VIEW_NAME)
 @RolesAllowed("admin")
@@ -42,7 +40,7 @@ public class OfferView extends VerticalLayout implements View {
     private CommandGateway gateway;
     
     @Inject
-    private BankAccountRepository bankAccountRepository;
+    private BankAccountRepositoryHelper bankAccountRepositoryHelper;
     
     @Inject
     private OfferGrid offerGrid;
@@ -84,9 +82,9 @@ public class OfferView extends VerticalLayout implements View {
     }
 
     private void createNew() {
-        Set<String> availableCurrencies = bankAccountRepository.findByActiveTrue().stream().map(BankAccount::getCurrency).collect(Collectors.toSet());
+        List<String> availableCurrencies = bankAccountRepositoryHelper.listAvailableCurrencies();
 
-        OfferEditor editor = new OfferEditor(availableCurrencies);
+        OfferForm editor = new OfferForm(availableCurrencies);
         Window window = new MWindow("New offer", editor).withModal(true).withResizable(false)
                 .withWidth("30%"); //TODO otherwise goes screen wide
         

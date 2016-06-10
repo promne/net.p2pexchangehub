@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.springframework.data.annotation.Id;
 
 import george.test.exchange.core.domain.UserAccountRole;
+import net.p2pexchangehub.core.api._domain.CurrencyAmount;
 import net.p2pexchangehub.view.domain.UserAccountContact.Type;
 
 public class UserAccount {
@@ -64,6 +65,10 @@ public class UserAccount {
 
     public Set<UserAccountWallet> getWallet() {
         return wallet;
+    }
+
+    public CurrencyAmount getWalletAmount(String currency) {
+        return wallet.stream().filter(w -> w.getCurrency().equals(currency)).map(w -> new CurrencyAmount(w.getCurrency(), w.getAmount())).findAny().orElse(new CurrencyAmount(currency));
     }
 
     public void setWallet(Set<UserAccountWallet> wallet) {

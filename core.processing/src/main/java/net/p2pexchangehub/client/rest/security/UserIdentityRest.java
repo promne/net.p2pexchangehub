@@ -5,11 +5,11 @@ import javax.enterprise.context.RequestScoped;
 import net.p2pexchangehub.view.domain.UserAccount;
 
 @RequestScoped
-public class UserIdentity {
+public class UserIdentityRest {
 
     private UserAccount userAccount;
 
-    public UserIdentity() {
+    public UserIdentityRest() {
         super();
     }
 

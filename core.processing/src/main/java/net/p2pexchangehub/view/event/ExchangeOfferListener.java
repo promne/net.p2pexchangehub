@@ -17,6 +17,7 @@ import net.p2pexchangehub.core.api.offer.OfferDebitRequestedEvent;
 import net.p2pexchangehub.core.api.offer.OfferExchangeCompletedEvent;
 import net.p2pexchangehub.core.api.offer.OfferMatchedEvent;
 import net.p2pexchangehub.core.api.offer.OfferRequestedAmountChangedEvent;
+import net.p2pexchangehub.core.api.offer.OfferUnmatchedEvent;
 import net.p2pexchangehub.core.handler.offer.OfferState;
 import net.p2pexchangehub.core.util.ExchangeRateEvaluator;
 import net.p2pexchangehub.view.domain.Offer;
@@ -66,6 +67,17 @@ public class ExchangeOfferListener implements ReplayAware {
         offer.setMatchedExchangeOfferId(event.getMatchedOfferId());
         offer.setExchangeRate(exchangeRateEvaluator.calculateRateRounded(event.getAmountOffered(), event.getAmountRequested()));
         offer.changeState(OfferState.WAITING_FOR_PAYMENT, eventTimestamp);
+        repository.save(offer);
+    }
+
+    @EventHandler
+    public void handleUnmatched(OfferUnmatchedEvent event, @Timestamp DateTime eventTimestamp) {
+        Offer offer = repository.findOne(event.getOfferId());
+        offer.setAmountOffered(null);
+        offer.setAmountRequested(null);
+        offer.setMatchedExchangeOfferId(null);
+        offer.setExchangeRate(null);
+        offer.changeState(OfferState.UNPAIRED, eventTimestamp);
         repository.save(offer);
     }
 

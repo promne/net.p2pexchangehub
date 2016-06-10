@@ -3,6 +3,8 @@ package net.p2pexchangehub.core.handler.offer;
 import java.math.BigDecimal;
 import java.util.Arrays;
 
+import javax.validation.constraints.NotNull;
+
 import org.axonframework.domain.MetaData;
 import org.axonframework.eventhandling.annotation.EventHandler;
 import org.axonframework.eventsourcing.annotation.AbstractAnnotatedAggregateRoot;
@@ -20,6 +22,7 @@ import net.p2pexchangehub.core.api.offer.OfferDebitRequestedEvent;
 import net.p2pexchangehub.core.api.offer.OfferExchangeCompletedEvent;
 import net.p2pexchangehub.core.api.offer.OfferMatchedEvent;
 import net.p2pexchangehub.core.api.offer.OfferRequestedAmountChangedEvent;
+import net.p2pexchangehub.core.api.offer.OfferUnmatchedEvent;
 
 public class ExchangeOffer extends AbstractAnnotatedAggregateRoot<String> {
 
@@ -96,8 +99,8 @@ public class ExchangeOffer extends AbstractAnnotatedAggregateRoot<String> {
         return matchedExchangeOfferId;
     }
 
-    public ExchangeOffer(String offerId, String userAccountId, String currencyOffered, BigDecimal amountOfferedMin, BigDecimal amountOfferedMax, String currencyRequested,
-            String requestedExchangeRateExpression, MetaData metaData) {
+    public ExchangeOffer(@NotNull String offerId, @NotNull String userAccountId, @NotNull String currencyOffered, @NotNull BigDecimal amountOfferedMin, @NotNull BigDecimal amountOfferedMax, @NotNull String currencyRequested,
+            @NotNull String requestedExchangeRateExpression, MetaData metaData) {
         if (amountOfferedMin.compareTo(amountOfferedMax)>0) {
             throw new IllegalArgumentException("Minimal amount can't be bigger than maximal amount");
         }
@@ -122,6 +125,21 @@ public class ExchangeOffer extends AbstractAnnotatedAggregateRoot<String> {
         this.amountOfferedMax = event.getAmountOfferedMax();
         this.amountOfferedMin = event.getAmountOfferedMin();
         this.requestedExchangeRateExpression = event.getExchangeRateExpression();
+    }
+    
+    public void unmatchOffer(MetaData metaData) {
+        if (this.state != OfferState.WAITING_FOR_PAYMENT) {
+            throw new IllegalStateException(String.format("Unable to unmatch offer %s in state %s", this.id, this.state));
+        }
+        apply(new OfferUnmatchedEvent(this.id, matchedExchangeOfferId), metaData);
+    }
+    
+    @EventHandler
+    private void handleUnmatched(OfferUnmatchedEvent event) {
+        this.amountOffered = null;
+        this.amountRequested = null;
+        this.matchedExchangeOfferId = null;
+        this.state = OfferState.UNPAIRED;
     }
     
     public void matchWithOffer(String matchedOfferId, BigDecimal amountOffered, BigDecimal amountRequested, MetaData metaData) {

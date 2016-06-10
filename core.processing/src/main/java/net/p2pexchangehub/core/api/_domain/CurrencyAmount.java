@@ -2,7 +2,7 @@ package net.p2pexchangehub.core.api._domain;
 
 import java.math.BigDecimal;
 
-public class CurrencyAmount {
+public class CurrencyAmount implements Comparable<CurrencyAmount> {
 
     private final String currencyCode;
     
@@ -12,6 +12,10 @@ public class CurrencyAmount {
         super();
         this.currencyCode = currencyCode;
         this.amount = amount;
+    }
+
+    public CurrencyAmount(String currencyCode) {
+        this(currencyCode, BigDecimal.ZERO);
     }
     
     public CurrencyAmount add(CurrencyAmount currencyAmount) {
@@ -42,6 +46,14 @@ public class CurrencyAmount {
 
     public BigDecimal getAmount() {
         return amount;
+    }
+
+    @Override
+    public int compareTo(CurrencyAmount o) {
+        if (!this.currencyCode.equals(o.currencyCode)) {
+            throw new IllegalArgumentException(String.format("Unable to compare different currencies: %s and %s", this.currencyCode, o.currencyCode));
+        }
+        return this.amount.compareTo(o.amount);
     }
 
     @Override

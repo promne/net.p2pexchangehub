@@ -41,7 +41,7 @@ public class SecurityInterceptor implements javax.ws.rs.container.ContainerReque
     private static final ServerResponse ACCESS_DENIED = new ServerResponse("Access denied for this resource", 401, new Headers<>());
 
     @Inject 
-    private UserIdentity userIdentity;
+    private UserIdentityRest userIdentity;
 
     @Inject
     private AuthenticationService authenticationService;

@@ -1,14 +1,22 @@
 package org.tylproject.vaadin.addon.utils;
 
 import com.vaadin.data.Container;
-import com.vaadin.data.util.filter.*;
-import org.springframework.data.mongodb.core.query.Criteria;
+import com.vaadin.data.util.filter.And;
+import com.vaadin.data.util.filter.Between;
+import com.vaadin.data.util.filter.Compare;
+import com.vaadin.data.util.filter.Compare.Operation;
+import com.vaadin.data.util.filter.IsNull;
+import com.vaadin.data.util.filter.Not;
+import com.vaadin.data.util.filter.Or;
+import com.vaadin.data.util.filter.SimpleStringFilter;
+import com.vaadin.data.util.filter.UnsupportedFilterException;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
+
+import org.springframework.data.mongodb.core.query.Criteria;
 
 /**
  * Created by evacchi on 02/12/14.
@@ -27,7 +35,7 @@ public class DefaultFilterConverter implements FilterConverter {
 
     @Override
     public List<Criteria> convertAll(Collection<Container.Filter> fs) {
-        List<Criteria> cs = new ArrayList<Criteria>();
+        List<Criteria> cs = new ArrayList<>();
         for (Container.Filter f: fs)
             cs.add(convert(f));
         return cs;
@@ -41,7 +49,7 @@ public class DefaultFilterConverter implements FilterConverter {
             return convertSimpleStringFilter(((SimpleStringFilter) f));
         } else
         if (f instanceof Compare) {
-            return convertCompareFilter((Compare) f);
+            return convertCompareFilter((Compare) f, negated);
         } else
         if (f instanceof Not) {
             return convertNegated(((Not) f).getFilter());
@@ -80,9 +88,15 @@ public class DefaultFilterConverter implements FilterConverter {
         }
     }
 
-    private Criteria convertCompareFilter(Compare f) {
+    private Criteria convertCompareFilter(Compare f, boolean negated) {
         Compare ff = f;
         Criteria c = Criteria.where(ff.getPropertyId().toString());
+        if (negated) {
+            if (ff.getOperation()==Operation.EQUAL) {
+                return c.ne(ff.getValue());
+            }
+            c = c.not();
+        }
         switch (ff.getOperation()) {
             case EQUAL:
                 return c.is(ff.getValue());

@@ -1,6 +1,7 @@
 package net.p2pexchangehub.core.api.offer;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 public class CreateOfferCommand {
 
@@ -28,6 +29,11 @@ public class CreateOfferCommand {
         this.amountOfferedMax = amountOfferedMax;
         this.currencyRequested = currencyRequested;
         this.requestedExchangeRateExpression = requestedExchangeRateExpression;
+    }
+
+    public CreateOfferCommand(String userAccountId, String currencyOffered, BigDecimal amountOfferedMin, BigDecimal amountOfferedMax, String currencyRequested,
+            String requestedExchangeRateExpression) {
+        this(UUID.randomUUID().toString(), userAccountId, currencyOffered, amountOfferedMin, amountOfferedMax, currencyRequested, requestedExchangeRateExpression);
     }
 
     public String getOfferId() {

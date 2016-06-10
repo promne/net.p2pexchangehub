@@ -21,7 +21,6 @@ import com.vaadin.ui.themes.ValoTheme;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -38,14 +37,13 @@ import net.p2pexchangehub.core.api.user.bank.CreateUserBankAccountCommand;
 import net.p2pexchangehub.core.api.user.bank.RemoveUserBankAccountCommand;
 import net.p2pexchangehub.core.api.user.contact.RequestContactValidationCodeCommand;
 import net.p2pexchangehub.core.handler.external.bank.ExternalBankAccountNumberValidator;
-import net.p2pexchangehub.view.domain.BankAccount;
 import net.p2pexchangehub.view.domain.Offer;
 import net.p2pexchangehub.view.domain.UserAccount;
 import net.p2pexchangehub.view.domain.UserAccountContact;
 import net.p2pexchangehub.view.domain.UserAccountContact.Type;
 import net.p2pexchangehub.view.domain.UserAccountWallet;
 import net.p2pexchangehub.view.domain.UserBankAccount;
-import net.p2pexchangehub.view.repository.BankAccountRepository;
+import net.p2pexchangehub.view.repository.BankAccountRepositoryHelper;
 
 @CDIView(MyDashboardView.VIEW_NAME)
 //@RollesAllowed - accessible by all
@@ -63,7 +61,7 @@ public class MyDashboardView extends HorizontalLayout implements View {
     private net.p2pexchangehub.view.repository.UserAccountRepository userAccountRepository;
     
     @Inject
-    private BankAccountRepository bankAccountRepository;
+    private BankAccountRepositoryHelper bankAccountRepositoryHelper;
     
     @Inject
     private OfferGrid offerGrid;
@@ -126,7 +124,7 @@ public class MyDashboardView extends HorizontalLayout implements View {
             bankAccountMenu.removeItems();
 
             bankAccountMenu.addItem("New", c -> {
-                List<String> availableCurrencies = bankAccountRepository.findByActiveTrue().stream().map(BankAccount::getCurrency).distinct().collect(Collectors.toList());
+                List<String> availableCurrencies = bankAccountRepositoryHelper.listAvailableCurrencies();
                 UserBankAccountForm bankAccountForm = new UserBankAccountForm(externalBankAccountNumberValidator, availableCurrencies);
                 
                 Window window = new MWindow("New bank account", bankAccountForm).withModal(true).withResizable(false)

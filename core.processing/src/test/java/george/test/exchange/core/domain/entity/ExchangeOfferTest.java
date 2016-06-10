@@ -9,6 +9,7 @@ import org.junit.Test;
 
 import net.p2pexchangehub.core.api.offer.CreateOfferCommand;
 import net.p2pexchangehub.core.api.offer.OfferCreatedEvent;
+import net.p2pexchangehub.core.api.offer.OfferRequestedAmountChangedEvent;
 import net.p2pexchangehub.core.handler.offer.ExchangeOffer;
 import net.p2pexchangehub.core.handler.offer.ExchangeOfferCommandHandler;
 
@@ -28,7 +29,8 @@ public class ExchangeOfferTest {
     public void testCreateOffer() {
          fixture.given()
              .when(new CreateOfferCommand("offerId", "userAccountId", "currencyOffered", BigDecimal.ZERO, BigDecimal.TEN, "currencyRequested", "1"))
-             .expectEvents(new OfferCreatedEvent("offerId", "userAccountId", "currencyOffered", BigDecimal.ZERO, BigDecimal.TEN, "currencyRequested", "1"));         
+             .expectEvents(new OfferCreatedEvent("offerId", "userAccountId", "currencyOffered", "currencyRequested"),
+                     new OfferRequestedAmountChangedEvent("offerId", BigDecimal.ZERO, BigDecimal.TEN, "1"));         
     }
     
 }

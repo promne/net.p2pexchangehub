@@ -6,6 +6,7 @@ import com.vaadin.cdi.CDIUI;
 import com.vaadin.cdi.URLMapping;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
+import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.VaadinRequest;
@@ -39,6 +40,7 @@ import net.p2pexchangehub.client.web.helpdesk.NotificationTemplateView;
 import net.p2pexchangehub.client.web.helpdesk.OfferView;
 import net.p2pexchangehub.client.web.helpdesk.SessionView;
 import net.p2pexchangehub.client.web.helpdesk.UserAccountView;
+import net.p2pexchangehub.client.web.offermatch.OfferMatchView;
 import net.p2pexchangehub.client.web.security.UserIdentity;
 import net.p2pexchangehub.client.web.tools.CDIViewProvider;
 import net.p2pexchangehub.view.domain.UserAccount;
@@ -103,6 +105,7 @@ public class MainUI extends UI {
         MenuBar menuBar = new MenuBar();
         
         addTopNavigation(menuBar, "Dashboard", ThemeResources.HOME, MyDashboardView.class);
+        addTopNavigationIWantTo(menuBar);
         addTopNavigation(menuBar, "Bank accounts", BankAccountView.class);
         addTopNavigation(menuBar, "Offers", OfferView.class);
         addTopNavigation(menuBar, "Users", UserAccountView.class);
@@ -150,6 +153,14 @@ public class MainUI extends UI {
     }
 
     
+    private void addTopNavigationIWantTo(MenuBar menuBar) {
+        MenuItem actionsMenu = menuBar.addItem("I want to ...", FontAwesome.GEARS, null);
+        
+        actionsMenu.addItem("Exchange money", c -> getNavigator().navigateTo(OfferMatchView.VIEW_NAME));
+        actionsMenu.addItem("Send money to my bank account", null);
+        actionsMenu.addItem("Change my password", null);
+    }
+
     protected MenuItem addTopNavigation(MenuBar menuBar, String caption, Resource icon, Class<? extends View> viewClass) {
         MenuItem result = null;
         if (viewProvider.isUserHavingAccessToView(viewClass)) {

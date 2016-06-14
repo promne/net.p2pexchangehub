@@ -1,14 +1,22 @@
 package net.p2pexchangehub.client.web.components;
 
 import com.vaadin.addon.contextmenu.GridContextMenu;
+import com.vaadin.addon.contextmenu.MenuItem;
 import com.vaadin.cdi.ViewScoped;
+import com.vaadin.data.Container.Filter;
 import com.vaadin.data.Item;
 import com.vaadin.data.util.PropertyValueGenerator;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -16,7 +24,8 @@ import javax.inject.Inject;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 
 import george.test.exchange.core.domain.UserAccountRole;
-import george.test.exchange.core.processing.service.CurrencyService;
+import net.p2pexchangehub.client.web.data.StringToBigDecimalFrictionLimitConverter;
+import net.p2pexchangehub.client.web.data.util.filter.InFilter;
 import net.p2pexchangehub.client.web.security.UserIdentity;
 import net.p2pexchangehub.core.api.offer.CancelExchangeOfferCommand;
 import net.p2pexchangehub.core.api.offer.RequestOfferCreditDeclineCommand;
@@ -51,9 +60,9 @@ public class OfferGrid extends MongoGrid<Offer> {
     @Inject
     private ExchangeRateEvaluator exchangeRateEvaluator;
     
-    @Inject
-    private CurrencyService currencyService;
-    
+    private Set<OfferState> filteredStates = new HashSet<>();
+    private Filter statesFilter = new InFilter(Offer.PROPERTY_STATE, new ArrayList<>());
+
     public OfferGrid() {
         super(Offer.class);
 
@@ -75,7 +84,7 @@ public class OfferGrid extends MongoGrid<Offer> {
         offerContextMenu.addGridBodyContextMenuListener(e -> {
             offerContextMenu.removeItems();
             offerContextMenu.addItem("Refresh", c -> refresh());
-
+           
             Offer offer = getEntity(e.getItemId());
             if (offer!=null && userIdentity.hasAnyRole(UserAccountRole.ADMIN, UserAccountRole.TRADER)) {
                 boolean isOfferOwner = userIdentity.getUserAccountId().equals(offer.getUserAccountId());
@@ -99,7 +108,31 @@ public class OfferGrid extends MongoGrid<Offer> {
                     }                                                    
                 }
             }
+            
         });        
+        offerContextMenu.addGridHeaderContextMenuListener(e -> {
+            offerContextMenu.removeItems();
+            MenuItem menuItemFilterClosed = offerContextMenu.addItem("Show closed", c -> {
+                if (c.isChecked()) {
+                    addFilteredState(OfferState.CLOSED);
+                } else {
+                    removeFilteredState(OfferState.CLOSED);
+                }
+            });
+            menuItemFilterClosed.setCheckable(true);
+            menuItemFilterClosed.setChecked(filteredStates.contains(OfferState.CLOSED));
+            
+            MenuItem menuItemFilterCanceled = offerContextMenu.addItem("Show canceled", c -> {
+                if (c.isChecked()) {
+                    addFilteredState(OfferState.CANCELED);
+                } else {
+                    removeFilteredState(OfferState.CANCELED);
+                }
+            });
+            menuItemFilterCanceled.setCheckable(true);
+            menuItemFilterCanceled.setChecked(filteredStates.contains(OfferState.CANCELED));
+        });
+        
     }
 
     @PostConstruct
@@ -115,9 +148,9 @@ public class OfferGrid extends MongoGrid<Offer> {
                 if (offer.getAmountOffered()!=null) {
                     amountString = offer.getAmountOffered().toPlainString();
                 } else if (offer.getAmountOfferedMin().compareTo(offer.getAmountOfferedMax())==0) {
-                    amountString = offer.getAmountOfferedMin().toPlainString();
+                    amountString = String.format(getLocale(), "%.2f", offer.getAmountOfferedMin());
                 } else {
-                    amountString = String.format("%s - %s", offer.getAmountOfferedMin().toPlainString(), offer.getAmountOfferedMax().toPlainString());
+                    amountString = String.format(getLocale(), "%.2f - %.2f", offer.getAmountOfferedMin(), offer.getAmountOfferedMax());
                 }
                 return amountString + " " + offer.getCurrencyOffered();
             }
@@ -136,13 +169,12 @@ public class OfferGrid extends MongoGrid<Offer> {
                 if (offer.getAmountRequested()!=null) {
                     amountString = offer.getAmountRequested().toPlainString();
                 } else {
-                    BigDecimal exchangeRate = exchangeRateEvaluator.evaluate(offer.getRequestedExchangeRateExpression()).setScale(4);
-                    String requestedAmountExchangedMin = currencyService.calculateExchangePay(offer.getAmountOfferedMin(), offer.getCurrencyOffered(), offer.getCurrencyRequested(), exchangeRate).toPlainString();
+                    BigDecimal requestedAmountExchangedMin = exchangeRateEvaluator.calculateExchangePay(offer.getAmountOfferedMin(), offer.getCurrencyOffered(), offer.getCurrencyRequested(), offer.getRequestedExchangeRateExpression());
                     if (offer.getAmountOfferedMin().compareTo(offer.getAmountOfferedMax())==0) {
-                        amountString = requestedAmountExchangedMin;
+                        amountString = String.format(getLocale(), "%.2f", requestedAmountExchangedMin);
                     } else {
-                        String requestedAmountExchangedMax = currencyService.calculateExchangePay(offer.getAmountOfferedMax(), offer.getCurrencyOffered(), offer.getCurrencyRequested(), exchangeRate).toPlainString();
-                        amountString = String.format("%s - %s", requestedAmountExchangedMin, requestedAmountExchangedMax);
+                        BigDecimal requestedAmountExchangedMax = exchangeRateEvaluator.calculateExchangePay(offer.getAmountOfferedMax(), offer.getCurrencyOffered(), offer.getCurrencyRequested(), offer.getRequestedExchangeRateExpression());
+                        amountString = String.format(getLocale(), "%.2f - %.2f", requestedAmountExchangedMin, requestedAmountExchangedMax);
                     }
                 }
                 return amountString + " " + offer.getCurrencyRequested();
@@ -169,9 +201,17 @@ public class OfferGrid extends MongoGrid<Offer> {
             public Class<BigDecimal> getType() {
                 return BigDecimal.class;
             }
-        });        
+        });       
+        getColumn(PROPERTY_EXCHANGE_RATE_READABLE).setConverter(new StringToBigDecimalFrictionLimitConverter());
+        
         getGeneratedPropertyContainer().addGeneratedProperty(PROPERTY_ACTION_CUSTOM, new ConstantPropertyValueGenerator<>("Action"));
 
+        
+        setVisibleColumns(Offer.PROPERTY_STATE, Offer.PROPERTY_DATE_CREATED,
+                OfferGrid.PROPERTY_AMOUNT_OFFERED_READABLE, Offer.PROPERTY_CURRENCY_OFFERED, OfferGrid.PROPERTY_AMOUNT_REQUESTED_READABLE, Offer.PROPERTY_CURRENCY_REQUESTED,  
+                OfferGrid.PROPERTY_EXCHANGE_RATE_READABLE, Offer.PROPERTY_REQUESTED_EXCHANGE_RATE_EXPRESSION,
+                Offer.PROPERTY_REFERENCE_ID
+                );
         
         Map<String, String> columnTranslationMap = new HashMap<>();
         columnTranslationMap.put(PROPERTY_AMOUNT_OFFERED_READABLE, "Offered");
@@ -183,8 +223,38 @@ public class OfferGrid extends MongoGrid<Offer> {
             Column column = getColumn(columnTranslation.getKey());
             column.setHeaderCaption(columnTranslation.getValue());
         }
+        
+        setFilteredStates(Arrays.asList(OfferState.values()));
     }
 
+    public Set<OfferState> getFilteredStates() {
+        return Collections.unmodifiableSet(filteredStates);
+    }
+    
+    public void addFilteredState(OfferState state) {
+        if (!filteredStates.contains(state)) {
+            Set<OfferState> newStates = new HashSet<>(filteredStates);
+            newStates.add(state);
+            setFilteredStates(newStates);
+        }
+    }
+
+    public void setFilteredStates(Collection<OfferState> states) {
+        getGeneratedPropertyContainer().removeContainerFilter(statesFilter);
+        statesFilter = new InFilter(Offer.PROPERTY_STATE, states.stream().map(Object::toString).collect(Collectors.toSet()));
+        getGeneratedPropertyContainer().addContainerFilter(statesFilter);
+        this.filteredStates = new HashSet<>(states);
+    }
+    
+    
+    public void removeFilteredState(OfferState state) {
+        if (filteredStates.contains(state)) {
+            Set<OfferState> newStates = new HashSet<>(filteredStates);
+            newStates.remove(state);
+            setFilteredStates(newStates);            
+        }
+    }
+    
     @Override
     protected Class<Offer> getItemClass() {
         return Offer.class;

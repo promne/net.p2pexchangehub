@@ -14,8 +14,10 @@ import javax.inject.Inject;
 
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.tylproject.vaadin.addon.MongoContainer;
+import org.tylproject.vaadin.addon.MongoContainer.Builder;
 
 import net.p2pexchangehub.client.web.ThemeStyles;
+import net.p2pexchangehub.client.web.data.util.filter.MongoFilterConverter;
 
 @ViewScoped
 public abstract class MongoGrid<T> extends Grid {
@@ -51,9 +53,13 @@ public abstract class MongoGrid<T> extends Grid {
     
     @PostConstruct
     private void init() {
-        mongoDataContainer = MongoContainer.Builder.forEntity(clazz, mongoOperations).buildBuffered();
+        mongoDataContainer = adjustMongoBuilder(MongoContainer.Builder.forEntity(clazz, mongoOperations)).buildBuffered();
         generatedPropertyContainer = new GeneratedPropertyContainer(mongoDataContainer);
         this.setContainerDataSource(generatedPropertyContainer);        
+    }
+
+    protected Builder<T> adjustMongoBuilder(Builder<T> builder) {
+        return builder.withFilterConverter(new MongoFilterConverter());
     }
     
     public GridContextMenu getContextMenu() {
@@ -86,10 +92,12 @@ public abstract class MongoGrid<T> extends Grid {
     public void setColumns(Object... propertyIds) {
         super.setColumns(propertyIds);
         getColumns().forEach(c -> c.setHidable(true));
+        setVisibleColumns(propertyIds);
     }
 
     public void setVisibleColumns(Object... propertyIds) {
         Collection<Object> propIds = Arrays.asList(propertyIds);
+        setColumnOrder(propertyIds);
         getColumns().forEach(c -> c.setHidden(!propIds.contains(c.getPropertyId())));
     }
     

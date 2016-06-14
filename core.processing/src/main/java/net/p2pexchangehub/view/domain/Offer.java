@@ -2,6 +2,7 @@ package net.p2pexchangehub.view.domain;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.joda.time.DateTime;
@@ -15,6 +16,9 @@ public class Offer {
     private String id;
     public static final String PROPERTY_ID = "id";
 
+    private Date dateCreated;
+    public static final String PROPERTY_DATE_CREATED = "dateCreated";    
+    
     private String userAccountId;
     public static final String PROPERTY_USER_ACCOUNT_ID = "userAccountId";
 
@@ -63,6 +67,14 @@ public class Offer {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public Date getDateCreated() {
+        return dateCreated;
+    }
+
+    public void setDateCreated(Date dateCreated) {
+        this.dateCreated = dateCreated;
     }
 
     public String getUserAccountId() {

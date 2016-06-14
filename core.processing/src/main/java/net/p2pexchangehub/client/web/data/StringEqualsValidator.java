@@ -1,4 +1,4 @@
-package net.p2pexchangehub.client.web.components;
+package net.p2pexchangehub.client.web.data;
 
 import com.vaadin.data.validator.AbstractStringValidator;
 

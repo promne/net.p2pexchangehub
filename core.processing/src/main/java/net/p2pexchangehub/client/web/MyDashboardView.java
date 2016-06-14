@@ -37,6 +37,7 @@ import net.p2pexchangehub.core.api.user.bank.CreateUserBankAccountCommand;
 import net.p2pexchangehub.core.api.user.bank.RemoveUserBankAccountCommand;
 import net.p2pexchangehub.core.api.user.contact.RequestContactValidationCodeCommand;
 import net.p2pexchangehub.core.handler.external.bank.ExternalBankAccountNumberValidator;
+import net.p2pexchangehub.core.handler.offer.OfferState;
 import net.p2pexchangehub.view.domain.Offer;
 import net.p2pexchangehub.view.domain.UserAccount;
 import net.p2pexchangehub.view.domain.UserAccountContact;
@@ -74,6 +75,13 @@ public class MyDashboardView extends HorizontalLayout implements View {
         setSpacing(true);
         setMargin(true);
         addStyleName(ValoTheme.LAYOUT_HORIZONTAL_WRAPPING);
+        
+        offerGrid.setColumns(Offer.PROPERTY_DATE_CREATED, OfferGrid.PROPERTY_AMOUNT_OFFERED_READABLE, OfferGrid.PROPERTY_AMOUNT_REQUESTED_READABLE, OfferGrid.PROPERTY_EXCHANGE_RATE_READABLE, Offer.PROPERTY_CURRENCY_OFFERED, Offer.PROPERTY_CURRENCY_REQUESTED, 
+                Offer.PROPERTY_STATE);
+        offerGrid.setVisibleColumns(OfferGrid.PROPERTY_AMOUNT_OFFERED_READABLE, OfferGrid.PROPERTY_AMOUNT_REQUESTED_READABLE, OfferGrid.PROPERTY_EXCHANGE_RATE_READABLE, Offer.PROPERTY_STATE);
+        offerGrid.getGeneratedPropertyContainer().addContainerFilter(new Compare.Equal(Offer.PROPERTY_USER_ACCOUNT_ID, userIdentity.getUserAccountId()));
+        offerGrid.removeFilteredState(OfferState.CANCELED);
+        
     }
     
     private Component panelBasicInfo(UserAccount userAccount) {
@@ -160,16 +168,12 @@ public class MyDashboardView extends HorizontalLayout implements View {
         return panel;
     }
 
-    private Component panelOffers(UserAccount userAccount) {
-        offerGrid.setColumns(OfferGrid.PROPERTY_AMOUNT_OFFERED_READABLE, OfferGrid.PROPERTY_EXCHANGE_RATE_READABLE, Offer.PROPERTY_CURRENCY_OFFERED, Offer.PROPERTY_CURRENCY_REQUESTED, 
-                Offer.PROPERTY_STATE);
-        offerGrid.getGeneratedPropertyContainer().removeAllContainerFilters();
-        offerGrid.getGeneratedPropertyContainer().addContainerFilter(new Compare.Equal(Offer.PROPERTY_USER_ACCOUNT_ID, userAccount.getId()));
-        offerGrid.setWidth("70em");
-        
+    private Component panelOffers(UserAccount userAccount) {        
         Panel panel = new Panel("Offers");
         panel.setIcon(ThemeResources.EXCHANGE);
         panel.setContent(offerGrid);        
+
+        offerGrid.setWidth("70em");        
         return panel;
     }
     

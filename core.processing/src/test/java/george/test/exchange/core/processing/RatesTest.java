@@ -1,11 +1,21 @@
 package george.test.exchange.core.processing;
 
 import java.math.BigDecimal;
+import java.util.Locale;
 
 import org.junit.Test;
 
 public class RatesTest {
 
+    @Test
+    public void toStringBD() throws Exception {
+        String format = "%#f";
+        Locale locale = new Locale("cs");
+        for (BigDecimal v : new BigDecimal[] {BigDecimal.ZERO, BigDecimal.ONE, new BigDecimal("1.00"), new BigDecimal("1.12"), new BigDecimal("1.123")}) {
+            System.out.println(String.format(locale, format, v));
+        }
+    }
+    
     @Test
     public void testSome() {
         BigDecimal rate = new BigDecimal("10.1234");

@@ -43,6 +43,7 @@ public class ExchangeOfferListener implements ReplayAware {
         Offer offer = new Offer();
         offer.setCurrencyOffered(event.getCurrencyOffered());
         offer.setCurrencyRequested(event.getCurrencyRequested());
+        offer.setDateCreated(eventTimestamp.toDate());
         offer.setId(event.getOfferId());
         offer.setUserAccountId(event.getUserAccountId());
         offer.setReferenceId(userAccount.getPaymentsCode());

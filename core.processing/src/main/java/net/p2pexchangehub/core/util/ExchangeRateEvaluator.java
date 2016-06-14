@@ -2,6 +2,7 @@ package net.p2pexchangehub.core.util;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Currency;
 
 import javax.el.ELContext;
 import javax.el.ExpressionFactory;
@@ -12,6 +13,11 @@ public class ExchangeRateEvaluator {
 
     public static final int RATE_PRECISION = 4;
     
+    public BigDecimal calculateExchangePay(BigDecimal amount, String currencyOffered, String currencyRequested, String exchangeRateExpression) {
+        Currency currency = Currency.getInstance(currencyRequested);
+        return amount.multiply(evaluate(exchangeRateExpression)).setScale(currency.getDefaultFractionDigits(), RoundingMode.HALF_UP);
+    }
+
     public BigDecimal evaluate(String rateExpression) {
         ExpressionFactory expressionFactory = ExpressionFactory.newInstance();
         ELContext context = new StandardELContext(expressionFactory);

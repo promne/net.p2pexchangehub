@@ -2,6 +2,7 @@ package net.p2pexchangehub.client.web.helpdesk;
 
 import com.vaadin.addon.contextmenu.GridContextMenu;
 import com.vaadin.cdi.CDIView;
+import com.vaadin.data.Container.Filter;
 import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.data.util.filter.Compare;
@@ -19,6 +20,9 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.VerticalSplitPanel;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -64,6 +68,9 @@ public class UserAccountView extends VerticalLayout implements View {
     
     @Inject
     private OfferGrid offerGrid;
+
+    private Collection<Filter> offerGridAppliedFilters = new HashSet<>();
+    
 
     @Inject
     private UserAccountGrid userAccountGrid;
@@ -181,9 +188,10 @@ public class UserAccountView extends VerticalLayout implements View {
         overviewGrid.addComponent(contactsGrid);
         
         
-        
-        offerGrid.getGeneratedPropertyContainer().removeAllContainerFilters(); //TODO better to focus on single filter
-        offerGrid.getGeneratedPropertyContainer().addContainerFilter(new Compare.Equal(Offer.PROPERTY_USER_ACCOUNT_ID, userAccount.getId()));
+        Collection<Filter> newFilters = Arrays.asList(new Compare.Equal(Offer.PROPERTY_USER_ACCOUNT_ID, userAccount.getId()));
+        offerGridAppliedFilters.forEach(offerGrid.getGeneratedPropertyContainer()::removeContainerFilter);
+        newFilters.forEach(offerGrid.getGeneratedPropertyContainer()::addContainerFilter);
+        offerGridAppliedFilters = newFilters;
         
         userWalletContainer.removeAllItems();
         userWalletContainer.addAll(userAccount.getWallet());

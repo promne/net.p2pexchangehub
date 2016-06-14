@@ -1,7 +1,9 @@
 package net.p2pexchangehub.core.handler.offer;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Arrays;
+import java.util.Currency;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -10,7 +12,6 @@ import org.axonframework.commandhandling.annotation.CommandHandler;
 import org.axonframework.domain.MetaData;
 import org.axonframework.repository.Repository;
 
-import george.test.exchange.core.processing.service.CurrencyService;
 import george.test.exchange.core.processing.service.bank.BankProviderException;
 import net.p2pexchangehub.core.api._domain.CurrencyAmount;
 import net.p2pexchangehub.core.api.offer.CancelExchangeOfferCommand;
@@ -28,9 +29,6 @@ import net.p2pexchangehub.core.util.ExchangeRateEvaluator;
 @Singleton
 public class ExchangeOfferCommandHandler {
 
-    @Inject
-    private CurrencyService currencyService;
-    
     @Inject
     private Repository<UserAccount> userAccountRepository;
     
@@ -67,7 +65,7 @@ public class ExchangeOfferCommandHandler {
         BigDecimal matchOfferRequestedExchangeRate = exchangeRateEvaluator.evaluate(matchOffer.getRequestedExchangeRateExpression());
         
         //create fitting counter offer 
-        BigDecimal requestedAmountExchanged = currencyService.calculateExchangePay(command.getAmountRequested(), matchOffer.getCurrencyOffered(), matchOffer.getCurrencyRequested(), matchOfferRequestedExchangeRate);
+        BigDecimal requestedAmountExchanged = exchangeRateEvaluator.calculateExchangePay(command.getAmountRequested(), matchOffer.getCurrencyOffered(), matchOffer.getCurrencyRequested(), matchOffer.getRequestedExchangeRateExpression());
         if (requestedAmountExchanged.compareTo(command.getAmountOffered()) > 0) {
             throw new IllegalStateException("Unable to match offer with lower bid");            
         }
@@ -75,10 +73,10 @@ public class ExchangeOfferCommandHandler {
         BigDecimal offerExchangeRate = exchangeRateEvaluator.calculateRateRounded(command.getAmountOffered(), command.getAmountRequested()); 
 
         //lazy thinker check to be sure
-        if (command.getAmountRequested().multiply(matchOfferRequestedExchangeRate).compareTo(requestedAmountExchanged)>0) {
+        if (command.getAmountRequested().multiply(matchOfferRequestedExchangeRate).setScale(Currency.getInstance(matchOffer.getCurrencyOffered()).getDefaultFractionDigits(), RoundingMode.HALF_UP).compareTo(requestedAmountExchanged)>0) {
           throw new IllegalStateException(command.toString());            
         }
-        if (command.getAmountOffered().multiply(offerExchangeRate).compareTo(command.getAmountRequested())>0) {
+        if (command.getAmountOffered().multiply(offerExchangeRate).setScale(Currency.getInstance(matchOffer.getCurrencyRequested()).getDefaultFractionDigits(), RoundingMode.HALF_UP).compareTo(command.getAmountRequested())>0) {
             throw new IllegalStateException(command.toString());            
         }
         

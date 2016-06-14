@@ -4,16 +4,22 @@ import com.vaadin.data.validator.AbstractValidator;
 import com.vaadin.data.validator.BigDecimalRangeValidator;
 import com.vaadin.data.validator.NullValidator;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.UI;
 
 import java.math.BigDecimal;
+import java.text.NumberFormat;
 import java.util.Collection;
+import java.util.Currency;
 
+import org.vaadin.viritin.MBeanFieldGroup;
 import org.vaadin.viritin.fields.MTextField;
 import org.vaadin.viritin.fields.TypedSelect;
 import org.vaadin.viritin.form.AbstractForm;
+import org.vaadin.viritin.label.MLabel;
 import org.vaadin.viritin.layouts.MFormLayout;
 
-import net.p2pexchangehub.client.web.data.StringToBigDecimalValidatorWrapper;
+import net.p2pexchangehub.client.web.data.StringToBigDecimalFrictionLimitConverter;
+import net.p2pexchangehub.core.util.ExchangeRateEvaluator;
 import net.p2pexchangehub.view.domain.Offer;
 
 public class OfferForm extends AbstractForm<Offer> {
@@ -26,10 +32,16 @@ public class OfferForm extends AbstractForm<Offer> {
 
     private TypedSelect<String> currencyRequested;
 
-    private MTextField requestedExchangeRateExpression;
+    private MTextField exchangeRate;
     
-    public OfferForm(Collection<String> currencyAvailable) {
+    private MLabel amountRequestedReadable;
+    
+    private ExchangeRateEvaluator exchangeRateEvaluator;
+    
+    public OfferForm(Collection<String> currencyAvailable, ExchangeRateEvaluator currencyService) {
         super();
+        
+        this.exchangeRateEvaluator = currencyService;
         
         String requiredError = "Field has to contain a value";
         
@@ -83,17 +95,48 @@ public class OfferForm extends AbstractForm<Offer> {
                     
                 });
 
-        //TODO: set up upper limit right
-        BigDecimalRangeValidator exchangeRateValidator = new BigDecimalRangeValidator("Has to contain positive value smaller than 100", BigDecimal.ZERO, BigDecimal.valueOf(100));
-        exchangeRateValidator.setMinValueIncluded(false);
+        exchangeRate = new MTextField("Exchange rate")
+                .withRequired(true).withRequiredError(requiredError);
         
-        requestedExchangeRateExpression = new MTextField("Exchange rate")
-                .withValidator(new StringToBigDecimalValidatorWrapper(exchangeRateValidator));
+        amountRequestedReadable = new MLabel();
+    }
+
+    @Override
+    public MBeanFieldGroup<Offer> setEntity(Offer entity) {
+        MBeanFieldGroup<Offer> result = super.setEntity(entity);
+        result.withEagerValidation(e -> {
+            this.onFieldGroupChange(e);
+            boolean valid = e.isValid();
+            if (valid) {
+                BigDecimal requestedExchangeRateValue = (BigDecimal) exchangeRate.getConvertedValue();
+                String currencyRequestedString = currencyRequested.getValue();
+                String currencyOfferedString = currencyOffered.getValue();
+                
+                NumberFormat numberFormat = NumberFormat.getInstance(UI.getCurrent().getLocale());
+                String amountMinReadable = numberFormat.format(exchangeRateEvaluator
+                        .calculateExchangePay((BigDecimal) amountOfferedMin.getConvertedValue(), currencyOfferedString, currencyRequestedString, requestedExchangeRateValue.toPlainString())
+                        );
+                String amountMaxReadable = exchangeRateEvaluator
+                        .calculateExchangePay((BigDecimal) amountOfferedMax.getConvertedValue(), currencyOfferedString, currencyRequestedString, requestedExchangeRateValue.toPlainString())
+                        .toPlainString();
+                
+                String requestedAmount = (amountMinReadable.equals(amountMaxReadable) ? amountMinReadable : (amountMinReadable + " - " + amountMaxReadable)) + " " + currencyRequestedString;
+                amountRequestedReadable.setValue("With this offer you will get " + requestedAmount);
+            } else {
+                amountRequestedReadable.setValue("");
+            }
+        });
+        StringToBigDecimalFrictionLimitConverter currencyConverter = new StringToBigDecimalFrictionLimitConverter(() -> Currency.getInstance(currencyOffered.getValue()).getDefaultFractionDigits());
+        amountOfferedMin.setConverter(currencyConverter);
+        amountOfferedMax.setConverter(currencyConverter);
+        exchangeRate.setConverter(new StringToBigDecimalFrictionLimitConverter(() -> ExchangeRateEvaluator.RATE_PRECISION));
+        
+        return result;
     }
 
     @Override
     protected Component createContent() {
-        return new MFormLayout(currencyOffered, amountOfferedMin, amountOfferedMax, currencyRequested, requestedExchangeRateExpression, getToolbar()).withMargin(true);
+        return new MFormLayout(currencyOffered, amountOfferedMin, amountOfferedMax, currencyRequested, exchangeRate, amountRequestedReadable, getToolbar()).withMargin(true);
     }
 
     

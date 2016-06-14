@@ -33,7 +33,7 @@ import org.vaadin.viritin.layouts.MVerticalLayout;
 import org.vaadin.viritin.layouts.MWindow;
 
 import de.steinwedel.messagebox.MessageBox;
-import net.p2pexchangehub.client.web.components.StringEqualsValidator;
+import net.p2pexchangehub.client.web.data.StringEqualsValidator;
 import net.p2pexchangehub.client.web.security.UserIdentity;
 import net.p2pexchangehub.core.api.user.AuthenticateUserAccountCommand;
 import net.p2pexchangehub.core.api.user.ChangeUserAccountNameCommand;

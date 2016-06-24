@@ -7,7 +7,6 @@ import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.data.util.filter.Compare;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Grid;
 import com.vaadin.ui.GridLayout;
@@ -16,7 +15,6 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.MenuBar.MenuItem;
 import com.vaadin.ui.Panel;
-import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
 import java.util.List;
@@ -28,14 +26,12 @@ import javax.inject.Inject;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.vaadin.viritin.label.MLabel;
 import org.vaadin.viritin.layouts.MVerticalLayout;
-import org.vaadin.viritin.layouts.MWindow;
 
 import net.p2pexchangehub.client.web.components.OfferGrid;
 import net.p2pexchangehub.client.web.form.UserBankAccountForm;
 import net.p2pexchangehub.client.web.security.UserIdentity;
 import net.p2pexchangehub.core.api.user.bank.CreateUserBankAccountCommand;
 import net.p2pexchangehub.core.api.user.bank.RemoveUserBankAccountCommand;
-import net.p2pexchangehub.core.api.user.contact.RequestContactValidationCodeCommand;
 import net.p2pexchangehub.core.handler.external.bank.ExternalBankAccountNumberValidator;
 import net.p2pexchangehub.core.handler.offer.OfferState;
 import net.p2pexchangehub.view.domain.Offer;
@@ -69,7 +65,7 @@ public class MyDashboardView extends HorizontalLayout implements View {
     
     @Inject
     private ExternalBankAccountNumberValidator externalBankAccountNumberValidator;
-    
+        
     @PostConstruct
     private void init() {
         setSpacing(true);
@@ -78,10 +74,10 @@ public class MyDashboardView extends HorizontalLayout implements View {
         
         offerGrid.setColumns(Offer.PROPERTY_DATE_CREATED, OfferGrid.PROPERTY_AMOUNT_OFFERED_READABLE, OfferGrid.PROPERTY_AMOUNT_REQUESTED_READABLE, OfferGrid.PROPERTY_EXCHANGE_RATE_READABLE, Offer.PROPERTY_CURRENCY_OFFERED, Offer.PROPERTY_CURRENCY_REQUESTED, 
                 Offer.PROPERTY_STATE);
-        offerGrid.setVisibleColumns(OfferGrid.PROPERTY_AMOUNT_OFFERED_READABLE, OfferGrid.PROPERTY_AMOUNT_REQUESTED_READABLE, OfferGrid.PROPERTY_EXCHANGE_RATE_READABLE, Offer.PROPERTY_STATE);
+        offerGrid.setVisibleColumns(Offer.PROPERTY_DATE_CREATED, OfferGrid.PROPERTY_AMOUNT_OFFERED_READABLE, OfferGrid.PROPERTY_AMOUNT_REQUESTED_READABLE, OfferGrid.PROPERTY_EXCHANGE_RATE_READABLE, Offer.PROPERTY_STATE);
         offerGrid.getGeneratedPropertyContainer().addContainerFilter(new Compare.Equal(Offer.PROPERTY_USER_ACCOUNT_ID, userIdentity.getUserAccountId()));
         offerGrid.removeFilteredState(OfferState.CANCELED);
-        
+//        offerGrid.setSortOrder(Arrays.asList(new SortOrder(Offer.PROPERTY_DATE_CREATED, SortDirection.DESCENDING)));        
     }
     
     private Component panelBasicInfo(UserAccount userAccount) {
@@ -134,23 +130,14 @@ public class MyDashboardView extends HorizontalLayout implements View {
             bankAccountMenu.addItem("New", c -> {
                 List<String> availableCurrencies = bankAccountRepositoryHelper.listAvailableCurrencies();
                 UserBankAccountForm bankAccountForm = new UserBankAccountForm(externalBankAccountNumberValidator, availableCurrencies);
-                
-                Window window = new MWindow("New bank account", bankAccountForm).withModal(true).withResizable(false)
-                        .withWidth("30%"); //TODO otherwise goes screen wide
-                
+                bankAccountForm.setModalWindowTitle("New bank account");
                 bankAccountForm.setSavedHandler(userBankAccount -> {
-                    window.close();
+                    bankAccountForm.closePopup();
                     commandGateway.sendAndWait(new CreateUserBankAccountCommand(userAccount.getId(), userBankAccount.getCurrency(), userBankAccount.getAccountNumber(), userBankAccount.getOwnerName()));
                     bankAccountContainer.addBean(userBankAccount);
                 });
-                
-                bankAccountForm.setResetHandler(offer -> {
-                    window.close();            
-                });
-                
                 bankAccountForm.setEntity(new UserBankAccount());
-                getUI().addWindow(window);
-                
+                bankAccountForm.openInModalPopup();                
             });
             if (e.getItemId()!=null) {
                 UserBankAccount bankAccount = (UserBankAccount) e.getItemId();
@@ -173,7 +160,8 @@ public class MyDashboardView extends HorizontalLayout implements View {
         panel.setIcon(ThemeResources.EXCHANGE);
         panel.setContent(offerGrid);        
 
-        offerGrid.setWidth("70em");        
+        offerGrid.setWidth("70em");
+        offerGrid.refresh();
         return panel;
     }
     
@@ -191,7 +179,7 @@ public class MyDashboardView extends HorizontalLayout implements View {
                 emailContactwGrid.addComponent(new Label(mc.getValue()));
                 Component mobileContactAction = null;
                 if (!mc.isValidated()) {
-                    mobileContactAction = new Button("Validate", c-> {commandGateway.send(new RequestContactValidationCodeCommand(userAccount.getId(), mc.getValue()));});
+//                    mobileContactAction = new Button("Validate", c-> {commandGateway.send(new RequestContactValidationCodeCommand(userAccount.getId(), mc.getValue()));});
                 } else {
                     MenuBar actionsMenuBar = new MenuBar();
                     MenuItem topItem = actionsMenuBar.addItem("Edit", null);

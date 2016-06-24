@@ -5,7 +5,9 @@ import com.vaadin.addon.contextmenu.MenuItem;
 import com.vaadin.cdi.ViewScoped;
 import com.vaadin.data.Container.Filter;
 import com.vaadin.data.Item;
+import com.vaadin.data.sort.SortOrder;
 import com.vaadin.data.util.PropertyValueGenerator;
+import com.vaadin.shared.data.sort.SortDirection;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -206,12 +208,12 @@ public class OfferGrid extends MongoGrid<Offer> {
         
         getGeneratedPropertyContainer().addGeneratedProperty(PROPERTY_ACTION_CUSTOM, new ConstantPropertyValueGenerator<>("Action"));
 
-        
+        setColumnsHideable();
         setVisibleColumns(Offer.PROPERTY_STATE, Offer.PROPERTY_DATE_CREATED,
                 OfferGrid.PROPERTY_AMOUNT_OFFERED_READABLE, Offer.PROPERTY_CURRENCY_OFFERED, OfferGrid.PROPERTY_AMOUNT_REQUESTED_READABLE, Offer.PROPERTY_CURRENCY_REQUESTED,  
                 OfferGrid.PROPERTY_EXCHANGE_RATE_READABLE, Offer.PROPERTY_REQUESTED_EXCHANGE_RATE_EXPRESSION,
                 Offer.PROPERTY_REFERENCE_ID
-                );
+                );        
         
         Map<String, String> columnTranslationMap = new HashMap<>();
         columnTranslationMap.put(PROPERTY_AMOUNT_OFFERED_READABLE, "Offered");
@@ -225,6 +227,7 @@ public class OfferGrid extends MongoGrid<Offer> {
         }
         
         setFilteredStates(Arrays.asList(OfferState.values()));
+        setSortOrder(Arrays.asList(new SortOrder(Offer.PROPERTY_DATE_CREATED, SortDirection.DESCENDING)));
     }
 
     public Set<OfferState> getFilteredStates() {

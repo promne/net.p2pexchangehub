@@ -34,6 +34,7 @@ import de.steinwedel.messagebox.ButtonOption;
 import de.steinwedel.messagebox.MessageBox;
 import george.test.exchange.core.domain.UserAccountRole;
 import george.test.exchange.core.processing.service.AuthenticationService;
+import net.p2pexchangehub.client.web.dialog.sendmoney.SendMoneyToUserAccountDialog;
 import net.p2pexchangehub.client.web.helpdesk.BankAccountView;
 import net.p2pexchangehub.client.web.helpdesk.ConfigurationView;
 import net.p2pexchangehub.client.web.helpdesk.NotificationTemplateView;
@@ -44,6 +45,8 @@ import net.p2pexchangehub.client.web.offermatch.OfferMatchView;
 import net.p2pexchangehub.client.web.security.UserIdentity;
 import net.p2pexchangehub.client.web.tools.CDIViewProvider;
 import net.p2pexchangehub.view.domain.UserAccount;
+import net.p2pexchangehub.view.repository.BankAccountRepository;
+import net.p2pexchangehub.view.repository.BankAccountRepositoryHelper;
 
 @CDIUI("")
 @URLMapping("client/*")
@@ -66,6 +69,15 @@ public class MainUI extends UI {
     @Inject
     private AuthenticationService authenticationService;
 
+    @Inject
+    private SendMoneyToUserAccountDialog sendMoneyToUserAccountDialog;
+    
+    @Inject
+    private BankAccountRepositoryHelper bankAccountRepositoryHelper;
+    
+    @Inject
+    private BankAccountRepository bankAccountRepository;
+    
     @Override
     protected void init(VaadinRequest request) {
         if (userIdentity.isLoggeedIn()) {
@@ -94,6 +106,7 @@ public class MainUI extends UI {
                 }
             }), ButtonOption.closeOnClick(false))
             .withButton(new MButton(ThemeResources.USER_ADD, "Register", c-> {
+                messageBox[0].close();
                 UI.getCurrent().addWindow(CDI.current().select(RegistrationWizard.class).get());
             }), ButtonOption.closeOnClick(false));
             messageBox[0].open();                                
@@ -157,8 +170,39 @@ public class MainUI extends UI {
         MenuItem actionsMenu = menuBar.addItem("I want to ...", FontAwesome.GEARS, null);
         
         actionsMenu.addItem("Exchange money", c -> getNavigator().navigateTo(OfferMatchView.VIEW_NAME));
-        actionsMenu.addItem("Send money to my bank account", null);
-        actionsMenu.addItem("Change my password", null);
+        actionsMenu.addItem("Send money to my bank account", c -> iWantToSendMoneyToBank());
+        
+        MenuItem menuItemChargeWallet = actionsMenu.addItem("Charge my wallet from my bank account", null);
+        bankAccountRepositoryHelper.listAvailableCurrencies().forEach(currency -> {
+            menuItemChargeWallet.addItem(currency, c -> iWantToTopupWallet(currency));            
+        });
+    }
+
+    private void iWantToTopupWallet(String currency) {
+        String chargeWalletTemplate = 
+                "<p>To charge your wallet with %1$s you need to send money to one of our trust accounts."
+                + " Once we receive your payment you will be able to exchange them for a different currency.</p>"
+                + "<p>You can use following account:</p>"
+                + "<p><center><strong>%2$s</strong></center></p>"
+                + "<p>For us to recognize it's a payment from you, please include your payment code <strong>%3$s</strong> as a reference.</p>"
+                ;
+        
+        
+        String incomingPaymentInstructions = bankAccountRepositoryHelper.getIncomingPaymentInstructions(currency, userIdentity.getUserAccountId());
+        String chargeWalletMessage = String.format(chargeWalletTemplate, currency, incomingPaymentInstructions, userIdentity.getUserAccount().get().getPaymentsCode());
+        MessageBox.create()
+            .withCaption("Charge your wallet")
+            .withHtmlMessage(chargeWalletMessage)
+            .withButton(new PrimaryButton("OK")).asModal(true).open();
+        
+    }
+
+    private void iWantToSendMoneyToBank() {
+        if (userIdentity.getUserAccount().get().getWallet().stream().anyMatch(w -> w.getAmount().signum()==1)) {
+            sendMoneyToUserAccountDialog.open(userIdentity.getUserAccount().get());
+        } else {
+            MessageBox.createWarning().asModal(true).withCaption("Error sending money").withMessage("Your wallet is empty, you can't send any money to any bank account.").withButton(new PrimaryButton("OK")).open();
+        }
     }
 
     protected MenuItem addTopNavigation(MenuBar menuBar, String caption, Resource icon, Class<? extends View> viewClass) {

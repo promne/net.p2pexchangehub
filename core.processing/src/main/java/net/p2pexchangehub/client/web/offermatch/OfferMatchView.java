@@ -10,17 +10,16 @@ import com.vaadin.data.validator.NullValidator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Notification.Type;
-import com.vaadin.ui.Window;
 import com.vaadin.ui.renderers.ButtonRenderer;
 import com.vaadin.ui.themes.ValoTheme;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Currency;
 import java.util.HashSet;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -34,10 +33,10 @@ import org.vaadin.viritin.label.MLabel;
 import org.vaadin.viritin.layouts.MFormLayout;
 import org.vaadin.viritin.layouts.MHorizontalLayout;
 import org.vaadin.viritin.layouts.MVerticalLayout;
-import org.vaadin.viritin.layouts.MWindow;
 import org.vaadin.viritin.ui.MNotification;
 
 import de.steinwedel.messagebox.MessageBox;
+import george.test.exchange.core.domain.UserAccountRole;
 import net.p2pexchangehub.client.web.components.ConstantPropertyValueGenerator;
 import net.p2pexchangehub.client.web.components.OfferGrid;
 import net.p2pexchangehub.client.web.data.StringToBigDecimalFrictionLimitConverter;
@@ -46,10 +45,12 @@ import net.p2pexchangehub.client.web.security.UserIdentity;
 import net.p2pexchangehub.core.api._domain.CurrencyAmount;
 import net.p2pexchangehub.core.api.offer.CreateOfferCommand;
 import net.p2pexchangehub.core.api.offer.MatchExchangeOfferCommand;
+import net.p2pexchangehub.core.api.user.contact.RequestContactValidationCodeCommand;
 import net.p2pexchangehub.core.handler.offer.OfferState;
 import net.p2pexchangehub.core.util.ExchangeRateEvaluator;
 import net.p2pexchangehub.view.domain.Offer;
 import net.p2pexchangehub.view.domain.UserAccount;
+import net.p2pexchangehub.view.domain.UserAccountContact;
 import net.p2pexchangehub.view.repository.BankAccountRepositoryHelper;
 
 @CDIView(OfferMatchView.VIEW_NAME)
@@ -130,15 +131,18 @@ public class OfferMatchView extends MVerticalLayout implements View {
     }
 
     private void matchWithOffer(Offer offer) {
+        if (!checkUserRole()) {
+            return;
+        }
+        
         String rangeValidationError = String.format(getLocale(), "Value has to be between %.2f and %.2f", offer.getAmountOfferedMin(), offer.getAmountOfferedMax());
-
         
         MLabel limitInfoLabel = new MLabel(String.format(getLocale(), "Requested amount of %s between %.2f and %.2f with exchage rate %.4f", offer.getCurrencyOffered(), offer.getAmountOfferedMin(), offer.getAmountOfferedMax(), exchangeRateEvaluator.evaluate(offer.getRequestedExchangeRateExpression())));
         MLabel amountOfferedLabel = new MLabel();
         
         MTextField amountField = new MTextField()
             .withRequired(true).withRequiredError(rangeValidationError)
-            .withConverter(new StringToBigDecimalFrictionLimitConverter(() -> Currency.getInstance(offer.getCurrencyOffered()).getDefaultFractionDigits())).withConversionError(rangeValidationError)
+            .withConverter(new StringToBigDecimalFrictionLimitConverter(offer.getCurrencyOffered())).withConversionError(rangeValidationError)
             .withValidator(new BigDecimalRangeValidator(rangeValidationError, offer.getAmountOfferedMin(), offer.getAmountOfferedMax()));
         amountField.setEagerValidation(true);
         
@@ -177,23 +181,21 @@ public class OfferMatchView extends MVerticalLayout implements View {
     }
 
     private void createNewDialog() {
+        if (!checkUserRole()) {
+            return;
+        }
+        
         List<String> availableCurrencies = bankAccountRepositoryHelper.listAvailableCurrencies();
 
         OfferForm editor = new OfferForm(availableCurrencies, exchangeRateEvaluator);
-        Window window = new MWindow("Create new offer", editor).withModal(true).withResizable(false)
-                .withWidth("40%"); //TODO otherwise goes screen wide
-        
+        editor.setModalWindowTitle("Create new offer");
         editor.setSavedHandler(offer -> {
-            window.close();
+            editor.closePopup();
             commandGateway.send(new CreateOfferCommand(userIdentity.getUserAccountId(), offer.getCurrencyOffered(), offer.getAmountOfferedMin(), offer.getAmountOfferedMax(), offer.getCurrencyRequested(), offer.getExchangeRate().toPlainString()));
             showTopupWalletReminder(offer.getCurrencyOffered(), offer.getAmountOfferedMax());
             getUI().getNavigator().navigateTo("");
         });
-        
-        editor.setResetHandler(offer -> {
-            window.close();            
-        });
-        
+
         Offer newOffer = new Offer();
         if (currencyOffered.isValid()) {
             newOffer.setCurrencyOffered(currencyOffered.getValue());
@@ -201,10 +203,9 @@ public class OfferMatchView extends MVerticalLayout implements View {
         if (currencyRequested.isValid()) {
             newOffer.setCurrencyRequested(currencyRequested.getValue());
         }
-        
         editor.setEntity(newOffer);
         
-        getUI().addWindow(window);
+        editor.openInModalPopup();
     }    
     
     private boolean showTopupWalletReminder(String currency, BigDecimal amount) {
@@ -219,9 +220,9 @@ public class OfferMatchView extends MVerticalLayout implements View {
         String topupWalletMessage = 
                 "<p>At the moment your wallet balance shows you don't have enough money to finish this transaction."
                 + " Your pledge will stay available, but to be able to close the transaction you need to top-up your wallet.</p>"
-                + "<p>To do that, you need to send %s %s to the following account:</p>"
-                + "<p><center><strong>%s</strong></center></p>"
-                + "<p>For us to recognize it's a payment from you, please include your payment code <strong>%s</strong> as a reference.</p>"
+                + "<p>To do that, you need to send %1$.2f %2$s to the following account:</p>"
+                + "<p><center><strong>%3$s</strong></center></p>"
+                + "<p>For us to recognize it's a payment from you, please include your payment code <strong>%4$s</strong> as a reference.</p>"
                 ;
         
         topupWalletMessage = String.format(topupWalletMessage, amount, currency, incomingBankAccountInstructions, userAccount.getPaymentsCode());
@@ -245,6 +246,35 @@ public class OfferMatchView extends MVerticalLayout implements View {
         appliedFilters = newFilters;
     }
     
+    /*
+     * checks user role and returns true if ok, otherwise false & show error encouraging to validate email. 
+     */
+    private boolean checkUserRole() {
+        boolean hasRole = userIdentity.hasRole(UserAccountRole.TRADER);
+        if (!hasRole) {
+            List<UserAccountContact> emails = userIdentity.getUserAccount().get().getContacts(net.p2pexchangehub.view.domain.UserAccountContact.Type.EMAIL).stream().filter(ec -> !ec.isValidated()).collect(Collectors.toList());
+            if (emails.isEmpty()) {
+                MessageBox
+                .createWarning()
+                .asModal(true)
+                .withMessage("You don't have the permission to do this. If you think that's a mistake, please contact our helpdesk.")
+                .withButton(new PrimaryButton("OK"))
+                .open();                                
+            } else {
+                MessageBox
+                .createInfo()
+                .asModal(true)
+                .withMessage("You can't do this yet. It looks like your email address hasn't been validated and you have to do that first. Please go back and check your mailbox or we can send you a new validation code.")
+                .withButton(new PrimaryButton("Back"))
+                .withButton(new MButton("Resend validation", c-> {
+                    emails.forEach(mc -> commandGateway.send(new RequestContactValidationCodeCommand(userIdentity.getUserAccountId(), mc.getValue())));
+                }))
+                .open();                
+            }
+            
+        }        
+        return hasRole;
+    }
     
     @Override
     public void enter(ViewChangeEvent event) {

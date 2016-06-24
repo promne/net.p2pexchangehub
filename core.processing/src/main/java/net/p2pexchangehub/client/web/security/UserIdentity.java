@@ -21,11 +21,8 @@ public class UserIdentity implements Serializable {
     
     private String userAccountId;
     
-    transient private Optional<UserAccount> userAccount = Optional.empty();
-        
     public void setUserAccountId(String userAccountId) {
         this.userAccountId = userAccountId;
-        userAccount = Optional.empty();
     }
 
     public String getUserAccountId() {
@@ -33,10 +30,10 @@ public class UserIdentity implements Serializable {
     }
     
     public Optional<UserAccount> getUserAccount() {
-        if (!userAccount.isPresent() && userAccountId!=null) {
-            userAccount = Optional.of(userAccountRepository.findOne(userAccountId));            
+        if (userAccountId!=null) {
+            return Optional.of(userAccountRepository.findOne(userAccountId));            
         }
-        return userAccount;
+        return Optional.empty();
     }
     
     public boolean isLoggeedIn() {
@@ -46,15 +43,16 @@ public class UserIdentity implements Serializable {
     public void logout() {
         //TODO: call to aggregate
         userAccountId = null;
-        userAccount = Optional.empty();
     }
     
     public boolean hasRole(UserAccountRole role) {
-        return getUserAccount().isPresent() && getUserAccount().get().getRoles().contains(role);
+        Optional<UserAccount> userAccount = getUserAccount();
+        return userAccount.isPresent() && userAccount.get().getRoles().contains(role);
     }
 
     public boolean hasAnyRole(UserAccountRole... roles) {
-        return getUserAccount().isPresent() && CollectionUtils.containsAny(getUserAccount().get().getRoles(), Arrays.asList(roles));
+        Optional<UserAccount> userAccount = getUserAccount();
+        return userAccount.isPresent() && CollectionUtils.containsAny(userAccount.get().getRoles(), Arrays.asList(roles));
     }
 
 }

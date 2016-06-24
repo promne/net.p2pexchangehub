@@ -41,6 +41,10 @@ public class OfferForm extends AbstractForm<Offer> {
     public OfferForm(Collection<String> currencyAvailable, ExchangeRateEvaluator currencyService) {
         super();
         
+        setResetHandler(offer -> {
+            OfferForm.this.closePopup();            
+        });
+        
         this.exchangeRateEvaluator = currencyService;
         
         String requiredError = "Field has to contain a value";
@@ -98,7 +102,7 @@ public class OfferForm extends AbstractForm<Offer> {
         exchangeRate = new MTextField("Exchange rate")
                 .withRequired(true).withRequiredError(requiredError);
         
-        amountRequestedReadable = new MLabel();
+        amountRequestedReadable = new MLabel("You will get", null);
     }
 
     @Override
@@ -121,9 +125,9 @@ public class OfferForm extends AbstractForm<Offer> {
                         .toPlainString();
                 
                 String requestedAmount = (amountMinReadable.equals(amountMaxReadable) ? amountMinReadable : (amountMinReadable + " - " + amountMaxReadable)) + " " + currencyRequestedString;
-                amountRequestedReadable.setValue("With this offer you will get " + requestedAmount);
+                amountRequestedReadable.setValue(requestedAmount);
             } else {
-                amountRequestedReadable.setValue("");
+                amountRequestedReadable.setValue("???");
             }
         });
         StringToBigDecimalFrictionLimitConverter currencyConverter = new StringToBigDecimalFrictionLimitConverter(() -> Currency.getInstance(currencyOffered.getValue()).getDefaultFractionDigits());
@@ -136,7 +140,10 @@ public class OfferForm extends AbstractForm<Offer> {
 
     @Override
     protected Component createContent() {
-        return new MFormLayout(currencyOffered, amountOfferedMin, amountOfferedMax, currencyRequested, exchangeRate, amountRequestedReadable, getToolbar()).withMargin(true);
+        MFormLayout mFormLayout = new MFormLayout(currencyOffered, amountOfferedMin, amountOfferedMax, currencyRequested, exchangeRate, amountRequestedReadable, getToolbar())
+                .withMargin(true);
+        mFormLayout.setSizeUndefined();
+        return mFormLayout;
     }
 
     

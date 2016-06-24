@@ -52,8 +52,7 @@ public class DemoCommands {
         gateway.send(new CreateConfigurationItemCommand(ExternalBankAccountImportScheduler.CONFIG_BANK_IMPORT_INTERVAL_PREFIX, "45000"));
         gateway.send(new CreateConfigurationItemCommand(ExternalBankAccountImportScheduler.CONFIG_SCHEDULE_INTERVAL, "200000"));
 
-        gateway.send(new CreateConfigurationItemCommand(NotificationSender.CONFIG_SMTP_SERVER_HOST, "192.168.56.101"));
-        gateway.send(new CreateConfigurationItemCommand(NotificationSender.CONFIG_SMTP_SERVER_PORT, "1025"));
+        gateway.send(new CreateConfigurationItemCommand(NotificationSender.CONFIG_SMTP_SERVER_PROPERTIES, "mail.smtp.host=192.168.56.101\nmail.smtp.port=1025"));
         gateway.send(new CreateConfigurationItemCommand(NotificationSender.CONFIG_EMAIL_SENDER_DEFAULT, "noreply@p2pexchangehub.net"));
 
         gateway.send(new CreateNotificationTemplateCommand("net.p2pexchangehub.core.api.user.contact.ContactDetailValidationRequestedEvent"));

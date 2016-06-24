@@ -1,6 +1,7 @@
 package george.test.exchange.core.processing;
 
 import java.math.BigDecimal;
+import java.text.NumberFormat;
 import java.util.Locale;
 
 import org.junit.Test;
@@ -11,7 +12,10 @@ public class RatesTest {
     public void toStringBD() throws Exception {
         String format = "%#f";
         Locale locale = new Locale("cs");
-        for (BigDecimal v : new BigDecimal[] {BigDecimal.ZERO, BigDecimal.ONE, new BigDecimal("1.00"), new BigDecimal("1.12"), new BigDecimal("1.123")}) {
+        for (BigDecimal v : new BigDecimal[] {BigDecimal.ZERO, BigDecimal.ONE, new BigDecimal("1.00"), new BigDecimal("1.12"), new BigDecimal("1.123"), new BigDecimal("12345.123")}) {
+            NumberFormat instance = NumberFormat.getInstance(locale);
+            instance.setGroupingUsed(false);
+            System.out.println(instance.format(v));
             System.out.println(String.format(locale, format, v));
         }
     }

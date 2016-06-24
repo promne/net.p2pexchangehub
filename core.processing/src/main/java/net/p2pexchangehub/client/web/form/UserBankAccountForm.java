@@ -27,6 +27,11 @@ public class UserBankAccountForm extends AbstractForm<UserBankAccount> {
     
     public UserBankAccountForm(ExternalBankAccountNumberValidator numberValidator, List<String> availableCurrencies) {
         super();
+        
+        setResetHandler(offer -> {
+            UserBankAccountForm.this.closePopup();
+        });
+        
         this.numberValidator = numberValidator;
         
         String requiredError = "Field has to contain a value";
@@ -45,7 +50,10 @@ public class UserBankAccountForm extends AbstractForm<UserBankAccount> {
 
     @Override
     protected Component createContent() {
-        return new MFormLayout(currency, accountNumber, ownerName, getToolbar()).withMargin(true);
+        MFormLayout layout = new MFormLayout(currency, accountNumber, ownerName, getToolbar())
+                .withMargin(true);
+        layout.setSizeUndefined();
+        return layout;
     }
 
     protected void setBankAccountFormat(String currency) {

@@ -88,10 +88,14 @@ public abstract class MongoGrid<T> extends Grid {
         return itemId==null ?  null : getMongoContainerDataSource().getItem(itemId).getBean();
     }
 
+    public void setColumnsHideable() {
+        getColumns().forEach(c -> c.setHidable(true));
+    }
+    
     @Override
     public void setColumns(Object... propertyIds) {
         super.setColumns(propertyIds);
-        getColumns().forEach(c -> c.setHidable(true));
+        setColumnsHideable();
         setVisibleColumns(propertyIds);
     }
 

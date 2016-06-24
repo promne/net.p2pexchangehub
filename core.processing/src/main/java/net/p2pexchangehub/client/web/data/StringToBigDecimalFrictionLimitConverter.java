@@ -1,6 +1,7 @@
 package net.p2pexchangehub.client.web.data;
 
 import java.text.NumberFormat;
+import java.util.Currency;
 import java.util.Locale;
 import java.util.function.Supplier;
 
@@ -12,6 +13,10 @@ public class StringToBigDecimalFrictionLimitConverter extends com.vaadin.data.ut
     
     public StringToBigDecimalFrictionLimitConverter() {
         this(() -> 340);
+    }
+
+    public StringToBigDecimalFrictionLimitConverter(String currencyCode) {
+        this(() -> Currency.getInstance(currencyCode).getDefaultFractionDigits());
     }
     
     public StringToBigDecimalFrictionLimitConverter(Supplier<Integer> maximumFrictionDigitsSupplier) {

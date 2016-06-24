@@ -1,15 +1,16 @@
 package net.p2pexchangehub.core.handler.notification;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.mail.MessagingException;
 
 import org.apache.commons.io.output.StringBuilderWriter;
-import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.eventhandling.annotation.EventHandler;
 import org.slf4j.Logger;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
@@ -37,16 +38,12 @@ public class NotificationSender extends AbstractIgnoreReplayEventHandler {
 
     public static final String CONFIG_EMAIL_SENDER_DEFAULT = "email.sender.default.address";
     
-    public static final String CONFIG_SMTP_SERVER_HOST = "smtp.server.host";
-    public static final String CONFIG_SMTP_SERVER_PORT = "smtp.server.port";
+    public static final String CONFIG_SMTP_SERVER_PROPERTIES = "smtp.server.properties";
     
     private Configuration freemarkerConfig;
 
     @Inject
     private Logger logger;
-    
-    @Inject
-    private CommandGateway gateway;
     
     @Inject
     private UserAccountRepository userAccountRepository;
@@ -92,9 +89,11 @@ public class NotificationSender extends AbstractIgnoreReplayEventHandler {
     }
 
     private void sendEmail(UserAccount findOne, UserAccountContact contact, NotificationTemplateEmail emailTemplate, Map<String, Object> templateData) throws TemplateException, IOException {
+        Properties javaMailProperties = new Properties();
+        javaMailProperties.load(new StringReader(configurationRepository.getValueString(CONFIG_SMTP_SERVER_PROPERTIES)));
+        
         JavaMailSenderImpl javaMailSender = new JavaMailSenderImpl();
-        javaMailSender.setHost(configurationRepository.getValueString(CONFIG_SMTP_SERVER_HOST));
-        javaMailSender.setPort(configurationRepository.getValueInt(CONFIG_SMTP_SERVER_PORT));
+        javaMailSender.setJavaMailProperties(javaMailProperties);
         
         StringBuilderWriter subjectWriter = new StringBuilderWriter();
         new Template("subject_template", emailTemplate.getSubject(), freemarkerConfig).process(templateData, subjectWriter);

@@ -23,7 +23,7 @@ public class OfferView extends VerticalLayout implements View {
     @PostConstruct
     private void init() {
         setSizeFull();
-        offerGrid.setSizeFull();
+//        offerGrid.setSizeFull();
         addComponent(offerGrid);
     }
 

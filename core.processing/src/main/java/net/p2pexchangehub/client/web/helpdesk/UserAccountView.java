@@ -3,10 +3,8 @@ package net.p2pexchangehub.client.web.helpdesk;
 import com.vaadin.addon.contextmenu.GridContextMenu;
 import com.vaadin.cdi.CDIView;
 import com.vaadin.data.Container.Filter;
-import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.data.util.filter.Compare;
-import com.vaadin.data.validator.BigDecimalRangeValidator;
 import com.vaadin.data.validator.EmailValidator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
@@ -19,11 +17,9 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.VerticalSplitPanel;
 
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -32,15 +28,12 @@ import javax.inject.Inject;
 
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.vaadin.viritin.fields.EmailField;
-import org.vaadin.viritin.fields.MTextField;
-import org.vaadin.viritin.fields.TypedSelect;
 
 import de.steinwedel.messagebox.MessageBox;
 import george.test.exchange.core.domain.UserAccountRole;
 import net.p2pexchangehub.client.web.components.OfferGrid;
 import net.p2pexchangehub.client.web.components.UserAccountGrid;
-import net.p2pexchangehub.core.api._domain.CurrencyAmount;
-import net.p2pexchangehub.core.api.user.SendMoneyToUserBankAccountCommand;
+import net.p2pexchangehub.client.web.dialog.sendmoney.SendMoneyToUserAccountDialog;
 import net.p2pexchangehub.core.api.user.contact.AddEmailContactCommand;
 import net.p2pexchangehub.core.api.user.contact.AddPhoneNumberContactCommand;
 import net.p2pexchangehub.core.api.user.contact.RequestContactValidationCodeCommand;
@@ -48,8 +41,6 @@ import net.p2pexchangehub.view.domain.Offer;
 import net.p2pexchangehub.view.domain.UserAccount;
 import net.p2pexchangehub.view.domain.UserAccountContact;
 import net.p2pexchangehub.view.domain.UserAccountWallet;
-import net.p2pexchangehub.view.domain.UserBankAccount;
-import net.p2pexchangehub.view.repository.OfferRepository;
 
 @CDIView(UserAccountView.VIEW_NAME)
 @RolesAllowed("admin")
@@ -64,14 +55,9 @@ public class UserAccountView extends VerticalLayout implements View {
     private net.p2pexchangehub.view.repository.UserAccountRepository userAccountRepository;
     
     @Inject
-    private OfferRepository offerRepository;
-    
-    @Inject
     private OfferGrid offerGrid;
-
     private Collection<Filter> offerGridAppliedFilters = new HashSet<>();
     
-
     @Inject
     private UserAccountGrid userAccountGrid;
     
@@ -80,6 +66,9 @@ public class UserAccountView extends VerticalLayout implements View {
     private BeanItemContainer<UserAccountWallet> userWalletContainer = new BeanItemContainer<>(UserAccountWallet.class);
     private Grid userWalletGrid = new Grid(userWalletContainer);
     private GridContextMenu walletContextMenu = new GridContextMenu(userWalletGrid);
+    
+    @Inject
+    private SendMoneyToUserAccountDialog sendMoneyToUserAccountDialog;
     
     @PostConstruct
     private void init() {
@@ -198,36 +187,9 @@ public class UserAccountView extends VerticalLayout implements View {
         
         walletContextMenu.addGridBodyContextMenuListener(e -> {
             walletContextMenu.removeItems();
-            BeanItem<UserAccountWallet> walletBean = userWalletContainer.getItem(e.getItemId());
-            if (walletBean!=null) {
-                UserAccountWallet wallet = walletBean.getBean();
-                
-                MTextField amountInputField = new MTextField("Amount");
-                amountInputField.setConverter(BigDecimal.class);
-                amountInputField.addValidator(new BigDecimalRangeValidator("Please enter positive value", BigDecimal.ZERO, wallet.getAmount()));
-                amountInputField.setConvertedValue(wallet.getAmount());
-                
-                Set<UserBankAccount> userBankAccountsWithCurrency = userAccount.getBankAccounts().stream().filter(uba -> uba.getCurrency().equals(wallet.getCurrency())).collect(Collectors.toSet());
-                
-                TypedSelect<UserBankAccount> userBankAccountSelect = new TypedSelect<>("Recipients account", userBankAccountsWithCurrency);
-                userBankAccountSelect.setCaptionGenerator(i -> String.format("%s (%s)", i.getAccountNumber(), i.getOwnerName()));
-                
-                walletContextMenu.addItem("Send money", c -> {
-                    MessageBox
-                    .create()
-                    .withCaption("Select amount you want to sent")
-                    .withMessage(new VerticalLayout(amountInputField, userBankAccountSelect))
-                    .withOkButton(() -> {
-                        amountInputField.validate();
-                        UserBankAccount selectedUserBankAccount = userBankAccountSelect.getValue();
-                        BigDecimal amountToSend = (BigDecimal) amountInputField.getConvertedValue();
-                        gateway.send(new SendMoneyToUserBankAccountCommand(userAccount.getId(), selectedUserBankAccount.getAccountNumber(), new CurrencyAmount(wallet.getCurrency(), amountToSend)));
-                    })
-                    .withCancelButton().open();                                
-                });
-                
-                
-            }
+            walletContextMenu.addItem("Send money", c -> {
+                sendMoneyToUserAccountDialog.open(userAccount);
+            });
         });
         
     }

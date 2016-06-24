@@ -103,6 +103,7 @@ public class RegistrationWizard extends MWindow {
             @Override
             public void wizardCancelled(WizardCancelledEvent event) {
                 RegistrationWizard.this.close();
+                Page.getCurrent().reload();
             }
             
             @Override

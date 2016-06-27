@@ -38,6 +38,9 @@ public class NotificationSender extends AbstractIgnoreReplayEventHandler {
 
     public static final String CONFIG_EMAIL_SENDER_DEFAULT = "email.sender.default.address";
     
+    public static final String CONFIG_SMTP_SERVER_HOST = "smtp.server.host";
+    public static final String CONFIG_SMTP_SERVER_USERNAME = "smtp.server.username";
+    public static final String CONFIG_SMTP_SERVER_PASSWORD = "smtp.server.password";
     public static final String CONFIG_SMTP_SERVER_PROPERTIES = "smtp.server.properties";
     
     private Configuration freemarkerConfig;
@@ -94,6 +97,9 @@ public class NotificationSender extends AbstractIgnoreReplayEventHandler {
         
         JavaMailSenderImpl javaMailSender = new JavaMailSenderImpl();
         javaMailSender.setJavaMailProperties(javaMailProperties);
+        javaMailSender.setHost(configurationRepository.getValueString(CONFIG_SMTP_SERVER_HOST));
+        javaMailSender.setUsername(configurationRepository.getValueString(CONFIG_SMTP_SERVER_USERNAME));
+        javaMailSender.setPassword(configurationRepository.getValueString(CONFIG_SMTP_SERVER_PASSWORD));
         
         StringBuilderWriter subjectWriter = new StringBuilderWriter();
         new Template("subject_template", emailTemplate.getSubject(), freemarkerConfig).process(templateData, subjectWriter);

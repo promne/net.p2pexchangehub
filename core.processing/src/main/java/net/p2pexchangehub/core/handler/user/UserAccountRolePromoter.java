@@ -8,9 +8,9 @@ import javax.inject.Inject;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.eventhandling.annotation.EventHandler;
 
-import george.test.exchange.core.domain.UserAccountRole;
 import net.p2pexchangehub.core.api.user.AddUserAccountRolesCommand;
 import net.p2pexchangehub.core.api.user.contact.ContactDetailValidatedEvent;
+import net.p2pexchangehub.core.domain.UserAccountRole;
 import net.p2pexchangehub.core.handler.AbstractIgnoreReplayEventHandler;
 import net.p2pexchangehub.view.domain.UserAccount;
 import net.p2pexchangehub.view.repository.UserAccountRepository;

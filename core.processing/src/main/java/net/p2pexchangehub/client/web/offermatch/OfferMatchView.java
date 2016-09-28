@@ -36,7 +36,6 @@ import org.vaadin.viritin.layouts.MVerticalLayout;
 import org.vaadin.viritin.ui.MNotification;
 
 import de.steinwedel.messagebox.MessageBox;
-import george.test.exchange.core.domain.UserAccountRole;
 import net.p2pexchangehub.client.web.components.ConstantPropertyValueGenerator;
 import net.p2pexchangehub.client.web.components.OfferGrid;
 import net.p2pexchangehub.client.web.data.StringToBigDecimalFrictionLimitConverter;
@@ -46,6 +45,7 @@ import net.p2pexchangehub.core.api._domain.CurrencyAmount;
 import net.p2pexchangehub.core.api.offer.CreateOfferCommand;
 import net.p2pexchangehub.core.api.offer.MatchExchangeOfferCommand;
 import net.p2pexchangehub.core.api.user.contact.RequestContactValidationCodeCommand;
+import net.p2pexchangehub.core.domain.UserAccountRole;
 import net.p2pexchangehub.core.handler.offer.OfferState;
 import net.p2pexchangehub.core.util.ExchangeRateEvaluator;
 import net.p2pexchangehub.view.domain.Offer;

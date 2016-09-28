@@ -1,4 +1,4 @@
-package george.test.exchange.core.processing.service.bank.provider.test;
+package net.p2pexchangehub.core.processing.service.bank.provider.test;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

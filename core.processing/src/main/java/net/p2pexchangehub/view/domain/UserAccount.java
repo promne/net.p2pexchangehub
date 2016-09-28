@@ -7,8 +7,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.data.annotation.Id;
 
-import george.test.exchange.core.domain.UserAccountRole;
 import net.p2pexchangehub.core.api._domain.CurrencyAmount;
+import net.p2pexchangehub.core.domain.UserAccountRole;
 import net.p2pexchangehub.view.domain.UserAccountContact.Type;
 
 public class UserAccount {

@@ -1,8 +1,8 @@
-package george.test.exchange.core.domain.entity;
+package net.p2pexchangehub.core.domain.entity;
 
 import java.math.BigDecimal;
 
-import george.test.exchange.core.domain.entity.bank.ExternalBankTransaction;
+import net.p2pexchangehub.core.domain.entity.bank.ExternalBankTransaction;
 import net.p2pexchangehub.core.handler.external.bank.ExternalBankAccount;
 
 public class TransactionRequestExternal {

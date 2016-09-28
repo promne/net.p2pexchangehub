@@ -1,4 +1,4 @@
-package george.test.exchange.core.processing.service.bank;
+package net.p2pexchangehub.core.processing.service.bank;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -10,8 +10,8 @@ import javax.inject.Inject;
 
 import org.slf4j.Logger;
 
-import george.test.exchange.core.domain.entity.TransactionRequestExternal;
-import george.test.exchange.core.domain.entity.bank.ExternalBankTransaction;
+import net.p2pexchangehub.core.domain.entity.TransactionRequestExternal;
+import net.p2pexchangehub.core.domain.entity.bank.ExternalBankTransaction;
 import net.p2pexchangehub.core.handler.external.bank.ExternalBankAccount;
 
 // because of weld being unable to inject generic, do the mapping to right type

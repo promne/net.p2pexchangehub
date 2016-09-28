@@ -12,10 +12,6 @@ import org.axonframework.commandhandling.annotation.CommandHandler;
 import org.axonframework.domain.MetaData;
 import org.axonframework.repository.Repository;
 
-import george.test.exchange.core.domain.ExternalBankType;
-import george.test.exchange.core.domain.entity.TransactionRequestExternal;
-import george.test.exchange.core.processing.service.bank.BankProvider;
-import george.test.exchange.core.processing.service.bank.BankProviderException;
 import net.p2pexchangehub.core.api.external.bank.CreateExternalBankAccountCommand;
 import net.p2pexchangehub.core.api.external.bank.LogExternalBankAccountCommunicationCommand;
 import net.p2pexchangehub.core.api.external.bank.RequestExternalBankSynchronizationCommand;
@@ -24,7 +20,11 @@ import net.p2pexchangehub.core.api.external.bank.SetExternalBankAccountActiveCom
 import net.p2pexchangehub.core.api.external.bank.SetExternalBankAccountCredentialsCommand;
 import net.p2pexchangehub.core.api.external.bank.SetExternalBankAccountSynchronizationEnabledCommand;
 import net.p2pexchangehub.core.api.external.bank.SetExternalBankAccountSynchronizedCommand;
+import net.p2pexchangehub.core.domain.ExternalBankType;
+import net.p2pexchangehub.core.domain.entity.TransactionRequestExternal;
 import net.p2pexchangehub.core.handler.user.UserAccount;
+import net.p2pexchangehub.core.processing.service.bank.BankProvider;
+import net.p2pexchangehub.core.processing.service.bank.BankProviderException;
 
 @Singleton
 public class ExternalBankAccountCommandHandler {

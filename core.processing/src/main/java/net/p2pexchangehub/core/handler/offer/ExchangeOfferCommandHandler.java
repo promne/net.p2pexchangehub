@@ -12,7 +12,6 @@ import org.axonframework.commandhandling.annotation.CommandHandler;
 import org.axonframework.domain.MetaData;
 import org.axonframework.repository.Repository;
 
-import george.test.exchange.core.processing.service.bank.BankProviderException;
 import net.p2pexchangehub.core.api._domain.CurrencyAmount;
 import net.p2pexchangehub.core.api.offer.CancelExchangeOfferCommand;
 import net.p2pexchangehub.core.api.offer.CompleteOfferExchangeCommand;
@@ -24,6 +23,7 @@ import net.p2pexchangehub.core.api.offer.RequestOfferCreditDeclineCommand;
 import net.p2pexchangehub.core.api.offer.RequestOfferDebitCommand;
 import net.p2pexchangehub.core.api.offer.UnmatchExchangeOfferCommand;
 import net.p2pexchangehub.core.handler.user.UserAccount;
+import net.p2pexchangehub.core.processing.service.bank.BankProviderException;
 import net.p2pexchangehub.core.util.ExchangeRateEvaluator;
 
 @Singleton

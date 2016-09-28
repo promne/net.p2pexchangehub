@@ -1,4 +1,4 @@
-package george.test.exchange.core.processing.service.bank.provider.test;
+package net.p2pexchangehub.core.processing.service.bank.provider.test;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -19,12 +19,12 @@ import org.simple.bank.api.ClientBankApi;
 import org.simple.bank.api.JacksonJsonProvider;
 import org.simple.bank.api.Transaction;
 
-import george.test.exchange.core.domain.ExternalBankType;
-import george.test.exchange.core.domain.entity.TransactionRequestExternal;
-import george.test.exchange.core.processing.service.bank.BankProvider;
-import george.test.exchange.core.processing.service.bank.BankProviderBase;
-import george.test.exchange.core.processing.service.bank.BankProviderException;
+import net.p2pexchangehub.core.domain.ExternalBankType;
+import net.p2pexchangehub.core.domain.entity.TransactionRequestExternal;
 import net.p2pexchangehub.core.handler.external.bank.TestBankAccount;
+import net.p2pexchangehub.core.processing.service.bank.BankProvider;
+import net.p2pexchangehub.core.processing.service.bank.BankProviderBase;
+import net.p2pexchangehub.core.processing.service.bank.BankProviderException;
 import net.p2pexchangehub.view.repository.ConfigurationRepository;
 
 public class TestBankProvider extends BankProviderBase<TestBankAccount, TestBankTransaction, TestBankContext> {

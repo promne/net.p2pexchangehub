@@ -32,8 +32,6 @@ import org.vaadin.viritin.fields.MTextField;
 
 import de.steinwedel.messagebox.ButtonOption;
 import de.steinwedel.messagebox.MessageBox;
-import george.test.exchange.core.domain.UserAccountRole;
-import george.test.exchange.core.processing.service.AuthenticationService;
 import net.p2pexchangehub.client.web.dialog.sendmoney.SendMoneyToUserAccountDialog;
 import net.p2pexchangehub.client.web.helpdesk.BankAccountView;
 import net.p2pexchangehub.client.web.helpdesk.ConfigurationView;
@@ -44,6 +42,8 @@ import net.p2pexchangehub.client.web.helpdesk.UserAccountView;
 import net.p2pexchangehub.client.web.offermatch.OfferMatchView;
 import net.p2pexchangehub.client.web.security.UserIdentity;
 import net.p2pexchangehub.client.web.tools.CDIViewProvider;
+import net.p2pexchangehub.core.domain.UserAccountRole;
+import net.p2pexchangehub.core.processing.service.AuthenticationService;
 import net.p2pexchangehub.view.domain.UserAccount;
 import net.p2pexchangehub.view.repository.BankAccountRepository;
 import net.p2pexchangehub.view.repository.BankAccountRepositoryHelper;

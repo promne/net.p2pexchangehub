@@ -1,7 +1,7 @@
-package george.test.exchange.core.processing.service.bank.provider.test;
+package net.p2pexchangehub.core.processing.service.bank.provider.test;
 
-import george.test.exchange.core.processing.service.bank.BankProviderContext;
 import net.p2pexchangehub.core.handler.external.bank.TestBankAccount;
+import net.p2pexchangehub.core.processing.service.bank.BankProviderContext;
 
 public class TestBankContext extends BankProviderContext<TestBankAccount> {
 

@@ -5,7 +5,6 @@ import javax.inject.Inject;
 import org.axonframework.eventhandling.annotation.EventHandler;
 import org.axonframework.eventhandling.replay.ReplayAware;
 
-import george.test.exchange.core.domain.UserAccountState;
 import net.p2pexchangehub.core.api._domain.CurrencyAmount;
 import net.p2pexchangehub.core.api.user.UserAccountChargedFromOfferEvent;
 import net.p2pexchangehub.core.api.user.UserAccountCreatedEvent;
@@ -27,6 +26,7 @@ import net.p2pexchangehub.core.api.user.contact.ContactDetailAddedEvent;
 import net.p2pexchangehub.core.api.user.contact.ContactDetailValidatedEvent;
 import net.p2pexchangehub.core.api.user.contact.EmailContactAddedEvent;
 import net.p2pexchangehub.core.api.user.contact.PhoneNumberContactAddedEvent;
+import net.p2pexchangehub.core.domain.UserAccountState;
 import net.p2pexchangehub.view.domain.UserAccount;
 import net.p2pexchangehub.view.domain.UserAccountContact;
 import net.p2pexchangehub.view.domain.UserAccountContact.Type;

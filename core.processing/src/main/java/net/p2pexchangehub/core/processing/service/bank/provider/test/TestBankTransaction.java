@@ -1,9 +1,9 @@
-package george.test.exchange.core.processing.service.bank.provider.test;
+package net.p2pexchangehub.core.processing.service.bank.provider.test;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
-import george.test.exchange.core.domain.entity.bank.ExternalBankTransaction;
+import net.p2pexchangehub.core.domain.entity.bank.ExternalBankTransaction;
 
 @Entity
 @Table

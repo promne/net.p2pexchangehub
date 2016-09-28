@@ -21,10 +21,10 @@ import org.jboss.resteasy.core.ResourceMethodInvoker;
 import org.jboss.resteasy.core.ServerResponse;
 import org.jboss.resteasy.util.Base64;
 
-import george.test.exchange.core.domain.UserAccountRole;
-import george.test.exchange.core.processing.service.AuthenticationService;
 import net.p2pexchangehub.client.security.AllowAll;
 import net.p2pexchangehub.client.security.AllowRoles;
+import net.p2pexchangehub.core.domain.UserAccountRole;
+import net.p2pexchangehub.core.processing.service.AuthenticationService;
 import net.p2pexchangehub.view.domain.UserAccount;
 
 /**

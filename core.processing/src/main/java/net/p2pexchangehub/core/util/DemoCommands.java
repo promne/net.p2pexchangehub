@@ -10,9 +10,6 @@ import javax.inject.Inject;
 
 import org.axonframework.commandhandling.gateway.CommandGateway;
 
-import george.test.exchange.core.domain.ExternalBankType;
-import george.test.exchange.core.domain.UserAccountRole;
-import george.test.exchange.core.processing.service.bank.provider.test.TestBankProvider;
 import net.p2pexchangehub.core.api.configuration.CreateConfigurationItemCommand;
 import net.p2pexchangehub.core.api.external.bank.CreateExternalBankAccountCommand;
 import net.p2pexchangehub.core.api.external.bank.RequestExternalBankSynchronizationCommand;
@@ -25,7 +22,10 @@ import net.p2pexchangehub.core.api.user.CreateUserAccountCommand;
 import net.p2pexchangehub.core.api.user.EnableUserAccountCommand;
 import net.p2pexchangehub.core.api.user.SetUserAccountPasswordCommand;
 import net.p2pexchangehub.core.api.user.bank.CreateUserBankAccountCommand;
+import net.p2pexchangehub.core.domain.ExternalBankType;
+import net.p2pexchangehub.core.domain.UserAccountRole;
 import net.p2pexchangehub.core.handler.notification.NotificationSender;
+import net.p2pexchangehub.core.processing.service.bank.provider.test.TestBankProvider;
 import net.p2pexchangehub.core.scheduler.ExternalBankAccountImportScheduler;
 import net.p2pexchangehub.view.repository.UserAccountRepository;
 

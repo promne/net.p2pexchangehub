@@ -29,7 +29,6 @@ import org.apache.commons.beanutils.Converter;
 import org.apache.commons.beanutils.converters.BigDecimalConverter;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 
-import george.test.exchange.core.domain.UserAccountRole;
 import net.p2pexchangehub.client.rest.security.UserIdentityRest;
 import net.p2pexchangehub.client.security.AllowAll;
 import net.p2pexchangehub.client.security.AllowRoles;
@@ -38,6 +37,7 @@ import net.p2pexchangehub.core.api.offer.CreateOfferCommand;
 import net.p2pexchangehub.core.api.offer.MatchExchangeOfferCommand;
 import net.p2pexchangehub.core.api.user.CreateUserAccountCommand;
 import net.p2pexchangehub.core.api.user.SetUserAccountPasswordCommand;
+import net.p2pexchangehub.core.domain.UserAccountRole;
 import net.p2pexchangehub.core.handler.offer.OfferState;
 import net.p2pexchangehub.view.domain.Offer;
 import net.p2pexchangehub.view.domain.UserAccount;

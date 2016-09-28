@@ -22,13 +22,13 @@ import org.springframework.data.mongodb.core.MongoOperations;
 import org.tylproject.vaadin.addon.MongoContainer;
 import org.tylproject.vaadin.addon.MongoContainer.Builder;
 
-import george.test.exchange.core.domain.ExternalBankTransactionState;
 import net.p2pexchangehub.client.web.ThemeStyles;
 import net.p2pexchangehub.core.api.external.bank.RequestExternalBankSynchronizationCommand;
 import net.p2pexchangehub.core.api.external.bank.SetExternalBankAccountActiveCommand;
 import net.p2pexchangehub.core.api.external.bank.SetExternalBankAccountSynchronizationEnabledCommand;
 import net.p2pexchangehub.core.api.external.bank.transaction.MatchIncomingExternalBankTransactionWithUserAccountCommand;
 import net.p2pexchangehub.core.api.external.bank.transaction.MatchOutgoingExternalBankTransactionWithRequestedCommand;
+import net.p2pexchangehub.core.domain.ExternalBankTransactionState;
 import net.p2pexchangehub.view.domain.BankAccount;
 import net.p2pexchangehub.view.domain.BankTransaction;
 import net.p2pexchangehub.view.repository.UserAccountRepository;

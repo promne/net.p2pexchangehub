@@ -30,13 +30,13 @@ import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.vaadin.viritin.fields.EmailField;
 
 import de.steinwedel.messagebox.MessageBox;
-import george.test.exchange.core.domain.UserAccountRole;
 import net.p2pexchangehub.client.web.components.OfferGrid;
 import net.p2pexchangehub.client.web.components.UserAccountGrid;
 import net.p2pexchangehub.client.web.dialog.sendmoney.SendMoneyToUserAccountDialog;
 import net.p2pexchangehub.core.api.user.contact.AddEmailContactCommand;
 import net.p2pexchangehub.core.api.user.contact.AddPhoneNumberContactCommand;
 import net.p2pexchangehub.core.api.user.contact.RequestContactValidationCodeCommand;
+import net.p2pexchangehub.core.domain.UserAccountRole;
 import net.p2pexchangehub.view.domain.Offer;
 import net.p2pexchangehub.view.domain.UserAccount;
 import net.p2pexchangehub.view.domain.UserAccountContact;

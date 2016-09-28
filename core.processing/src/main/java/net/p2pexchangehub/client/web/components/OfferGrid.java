@@ -25,7 +25,6 @@ import javax.inject.Inject;
 
 import org.axonframework.commandhandling.gateway.CommandGateway;
 
-import george.test.exchange.core.domain.UserAccountRole;
 import net.p2pexchangehub.client.web.data.StringToBigDecimalFrictionLimitConverter;
 import net.p2pexchangehub.client.web.data.util.filter.InFilter;
 import net.p2pexchangehub.client.web.security.UserIdentity;
@@ -33,6 +32,7 @@ import net.p2pexchangehub.core.api.offer.CancelExchangeOfferCommand;
 import net.p2pexchangehub.core.api.offer.RequestOfferCreditDeclineCommand;
 import net.p2pexchangehub.core.api.offer.UnmatchExchangeOfferCommand;
 import net.p2pexchangehub.core.api.user.CreditOfferFromUserAccountCommand;
+import net.p2pexchangehub.core.domain.UserAccountRole;
 import net.p2pexchangehub.core.handler.offer.OfferState;
 import net.p2pexchangehub.core.util.ExchangeRateEvaluator;
 import net.p2pexchangehub.view.domain.Offer;

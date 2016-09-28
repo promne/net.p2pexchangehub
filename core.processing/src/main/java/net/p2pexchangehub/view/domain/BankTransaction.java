@@ -6,7 +6,7 @@ import java.util.Date;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 
-import george.test.exchange.core.domain.ExternalBankTransactionState;
+import net.p2pexchangehub.core.domain.ExternalBankTransactionState;
 
 public class BankTransaction {
 

@@ -15,8 +15,8 @@ import javax.inject.Inject;
 
 import org.axonframework.commandhandling.gateway.CommandGateway;
 
-import george.test.exchange.core.processing.service.bank.BankProvider;
 import net.p2pexchangehub.core.api.external.bank.RequestExternalBankSynchronizationCommand;
+import net.p2pexchangehub.core.processing.service.bank.BankProvider;
 import net.p2pexchangehub.view.domain.BankAccount;
 import net.p2pexchangehub.view.repository.BankAccountRepository;
 import net.p2pexchangehub.view.repository.ConfigurationRepository;

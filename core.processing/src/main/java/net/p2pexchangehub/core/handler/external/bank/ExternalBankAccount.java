@@ -13,7 +13,6 @@ import org.axonframework.eventsourcing.annotation.AbstractAnnotatedAggregateRoot
 import org.axonframework.eventsourcing.annotation.AggregateIdentifier;
 import org.joda.time.DateTime;
 
-import george.test.exchange.core.domain.ExternalBankType;
 import net.p2pexchangehub.core.api._domain.CurrencyAmount;
 import net.p2pexchangehub.core.api.external.bank.ExternalBankAccountActiveSetEvent;
 import net.p2pexchangehub.core.api.external.bank.ExternalBankAccountCommunicationLoggedEvent;
@@ -25,6 +24,7 @@ import net.p2pexchangehub.core.api.external.bank.ExternalBankAccountSynchronized
 import net.p2pexchangehub.core.api.external.bank.ExternalBankTransactionRequestConfirmedEvent;
 import net.p2pexchangehub.core.api.external.bank.ExternalBankTransactionRequestFailedEvent;
 import net.p2pexchangehub.core.api.external.bank.ExternalBankTransactionRequestSucceededEvent;
+import net.p2pexchangehub.core.domain.ExternalBankType;
 
 public abstract class ExternalBankAccount extends AbstractAnnotatedAggregateRoot<String> {
 

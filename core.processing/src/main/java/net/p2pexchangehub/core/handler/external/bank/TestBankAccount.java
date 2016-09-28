@@ -2,7 +2,7 @@ package net.p2pexchangehub.core.handler.external.bank;
 
 import org.axonframework.domain.MetaData;
 
-import george.test.exchange.core.domain.ExternalBankType;
+import net.p2pexchangehub.core.domain.ExternalBankType;
 
 public class TestBankAccount extends ExternalBankAccount {
 

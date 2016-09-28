@@ -1,4 +1,4 @@
-package george.test.exchange.core.processing.service.bank;
+package net.p2pexchangehub.core.processing.service.bank;
 
 public class BankProviderException extends Exception {
 

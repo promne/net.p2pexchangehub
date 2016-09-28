@@ -1,4 +1,4 @@
-package george.test.exchange.core.domain.entity.bank;
+package net.p2pexchangehub.core.domain.entity.bank;
 
 import java.math.BigDecimal;
 import java.util.Date;

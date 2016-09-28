@@ -14,17 +14,17 @@ import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.eventhandling.annotation.EventHandler;
 import org.axonframework.repository.Repository;
 
-import george.test.exchange.core.domain.ExternalBankType;
-import george.test.exchange.core.processing.service.bank.BankProvider;
-import george.test.exchange.core.processing.service.bank.BankProviderException;
-import george.test.exchange.core.processing.service.bank.provider.test.TestBankTransaction;
 import net.p2pexchangehub.core.aggregate.value.BankSpecificTransactionData;
 import net.p2pexchangehub.core.aggregate.value.TestBankTransactionData;
 import net.p2pexchangehub.core.api._domain.CurrencyAmount;
 import net.p2pexchangehub.core.api.external.bank.ExternalBankAccountSynchronizationRequestedEvent;
 import net.p2pexchangehub.core.api.external.bank.SetExternalBankAccountSynchronizedCommand;
 import net.p2pexchangehub.core.api.external.bank.transaction.CreateExternalBankTransactionCommand;
+import net.p2pexchangehub.core.domain.ExternalBankType;
 import net.p2pexchangehub.core.handler.AbstractIgnoreReplayEventHandler;
+import net.p2pexchangehub.core.processing.service.bank.BankProvider;
+import net.p2pexchangehub.core.processing.service.bank.BankProviderException;
+import net.p2pexchangehub.core.processing.service.bank.provider.test.TestBankTransaction;
 
 public class ExternalBankTransactionSynchronizer extends AbstractIgnoreReplayEventHandler {
     
@@ -59,10 +59,10 @@ public class ExternalBankTransactionSynchronizer extends AbstractIgnoreReplayEve
         }
         Date checkTo = new Date();
         try {
-            List<george.test.exchange.core.domain.entity.bank.ExternalBankTransaction> transactions = bankProvider.listTransactions(bankAccount, checkFrom, checkTo);
+            List<net.p2pexchangehub.core.domain.entity.bank.ExternalBankTransaction> transactions = bankProvider.listTransactions(bankAccount, checkFrom, checkTo);
             BigDecimal balance = bankProvider.getBalance(bankAccount);            
             if (!transactions.isEmpty()) {
-                for (george.test.exchange.core.domain.entity.bank.ExternalBankTransaction tr : transactions) {
+                for (net.p2pexchangehub.core.domain.entity.bank.ExternalBankTransaction tr : transactions) {
                     
                     BankSpecificTransactionData bankSpecificTransactionData;
                     String referenceInfo;

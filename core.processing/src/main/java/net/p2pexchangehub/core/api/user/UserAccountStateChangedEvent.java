@@ -1,6 +1,6 @@
 package net.p2pexchangehub.core.api.user;
 
-import george.test.exchange.core.domain.UserAccountState;
+import net.p2pexchangehub.core.domain.UserAccountState;
 
 public class UserAccountStateChangedEvent {
 

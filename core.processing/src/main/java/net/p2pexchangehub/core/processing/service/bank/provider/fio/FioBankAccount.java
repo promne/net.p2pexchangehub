@@ -1,4 +1,4 @@
-package george.test.exchange.core.processing.service.bank.provider.fio;
+package net.p2pexchangehub.core.processing.service.bank.provider.fio;
 
 import net.p2pexchangehub.core.handler.external.bank.ExternalBankAccount;
 

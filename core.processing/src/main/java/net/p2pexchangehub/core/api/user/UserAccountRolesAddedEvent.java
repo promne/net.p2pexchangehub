@@ -2,7 +2,7 @@ package net.p2pexchangehub.core.api.user;
 
 import java.util.Set;
 
-import george.test.exchange.core.domain.UserAccountRole;
+import net.p2pexchangehub.core.domain.UserAccountRole;
 
 public class UserAccountRolesAddedEvent {
 

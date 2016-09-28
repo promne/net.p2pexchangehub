@@ -9,7 +9,7 @@ import javax.inject.Inject;
 
 import org.apache.commons.collections4.CollectionUtils;
 
-import george.test.exchange.core.domain.UserAccountRole;
+import net.p2pexchangehub.core.domain.UserAccountRole;
 import net.p2pexchangehub.view.domain.UserAccount;
 import net.p2pexchangehub.view.repository.UserAccountRepository;
 

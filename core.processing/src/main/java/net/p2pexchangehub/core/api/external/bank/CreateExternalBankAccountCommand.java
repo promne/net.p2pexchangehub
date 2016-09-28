@@ -1,6 +1,6 @@
 package net.p2pexchangehub.core.api.external.bank;
 
-import george.test.exchange.core.domain.ExternalBankType;
+import net.p2pexchangehub.core.domain.ExternalBankType;
 
 public class CreateExternalBankAccountCommand {
 

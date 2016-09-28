@@ -7,7 +7,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import george.test.exchange.core.domain.UserAccountRole;
+import net.p2pexchangehub.core.domain.UserAccountRole;
 
 @Retention (RUNTIME)
 @Target({TYPE, METHOD})

@@ -5,7 +5,7 @@ import java.util.Date;
 
 import org.springframework.data.annotation.Id;
 
-import george.test.exchange.core.domain.ExternalBankType;
+import net.p2pexchangehub.core.domain.ExternalBankType;
 
 public class BankAccount {
 

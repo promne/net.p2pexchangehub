@@ -17,12 +17,12 @@ import javax.inject.Inject;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 
 import de.steinwedel.messagebox.MessageBox;
-import george.test.exchange.core.domain.UserAccountRole;
 import net.p2pexchangehub.core.api.user.AddUserAccountRolesCommand;
 import net.p2pexchangehub.core.api.user.ChangeUserAccountNameCommand;
 import net.p2pexchangehub.core.api.user.DisableUserAccountCommand;
 import net.p2pexchangehub.core.api.user.EnableUserAccountCommand;
 import net.p2pexchangehub.core.api.user.RemoveUserAccountRolesCommand;
+import net.p2pexchangehub.core.domain.UserAccountRole;
 import net.p2pexchangehub.view.domain.UserAccount;
 import net.p2pexchangehub.view.domain.UserAccountContact;
 import net.p2pexchangehub.view.domain.UserAccountContact.Type;

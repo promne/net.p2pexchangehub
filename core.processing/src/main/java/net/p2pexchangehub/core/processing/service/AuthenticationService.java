@@ -1,4 +1,4 @@
-package george.test.exchange.core.processing.service;
+package net.p2pexchangehub.core.processing.service;
 
 import java.util.Optional;
 

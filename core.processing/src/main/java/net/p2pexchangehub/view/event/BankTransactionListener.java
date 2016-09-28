@@ -5,10 +5,10 @@ import javax.inject.Inject;
 import org.axonframework.eventhandling.annotation.EventHandler;
 import org.axonframework.eventhandling.replay.ReplayAware;
 
-import george.test.exchange.core.domain.ExternalBankTransactionState;
 import net.p2pexchangehub.core.aggregate.value.TestBankTransactionData;
 import net.p2pexchangehub.core.api.external.bank.transaction.ExternalBankTransactionCreatedEvent;
 import net.p2pexchangehub.core.api.external.bank.transaction.ExternalBankTransactionMatchedWithUserAccountEvent;
+import net.p2pexchangehub.core.domain.ExternalBankTransactionState;
 import net.p2pexchangehub.view.domain.BankAccount;
 import net.p2pexchangehub.view.domain.BankTransaction;
 import net.p2pexchangehub.view.repository.BankTransactionRepository;
